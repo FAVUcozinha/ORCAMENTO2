@@ -21,34 +21,32 @@
     }
 
     img {
-      width: 80%;
-      max-width: 320px;
+      width: 100%;
+      max-width: 100%;
     }
 
     .topo,
     .roda {
       position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
       z-index: 10;
-      width: 80%;
-      max-width: 320px;
+      width: 100%;
     }
 
     .topo {
       top: 0;
-      height: 100px;
+      height: auto;
     }
 
     .roda {
       bottom: 0;
-      height: 100px;
+      height: auto;
     }
 
     .content {
       position: absolute;
-      top: 100px;
-      bottom: 100px;
+      top: 100px;  /* Altura aproximada da imagem topo.png */
+      bottom: 100px;  /* Altura aproximada da imagem roda.png */
       left: 0;
       right: 0;
       display: flex;
@@ -56,9 +54,12 @@
       align-items: center;
       justify-content: center;
       overflow-y: auto;
+      padding: 10px;
     }
 
     .favu {
+      width: 80%;
+      max-width: 320px;
       margin-bottom: 20px;
     }
 
@@ -67,6 +68,7 @@
       flex-direction: column;
       align-items: center;
       gap: 12px;
+      width: 100%;
     }
 
     .button {
@@ -78,7 +80,7 @@
       font-size: 18px;
       font-weight: bold;
       border: none;
-      width: 100%;
+      width: 80%;
       max-width: 220px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       transition: all 0.3s ease;
