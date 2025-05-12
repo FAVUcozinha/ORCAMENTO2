@@ -21,32 +21,34 @@
     }
 
     img {
-      width: 100%;
-      max-width: 100%;
+      width: 80%;
+      max-width: 400px;
     }
 
     .topo,
     .roda {
       position: fixed;
-      left: 0;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 10;
-      width: 100%;
+      width: 80%;
+      max-width: 400px;
     }
 
     .topo {
       top: 0;
-      height: auto;
+      height: 100px;
     }
 
     .roda {
       bottom: 0;
-      height: auto;
+      height: 100px;
     }
 
     .content {
       position: absolute;
-      top: 100px;  /* Altura aproximada da imagem topo.png */
-      bottom: 100px;  /* Altura aproximada da imagem roda.png */
+      top: 100px;
+      bottom: 100px;
       left: 0;
       right: 0;
       display: flex;
@@ -54,13 +56,12 @@
       align-items: center;
       justify-content: center;
       overflow-y: auto;
-      padding: 10px;
     }
 
     .favu {
-      width: 80%;
-      max-width: 320px;
       margin-bottom: 20px;
+      width: 80%;
+      max-width: 400px;
     }
 
     .button-container {
@@ -68,7 +69,6 @@
       flex-direction: column;
       align-items: center;
       gap: 12px;
-      width: 100%;
     }
 
     .button {
@@ -80,7 +80,7 @@
       font-size: 18px;
       font-weight: bold;
       border: none;
-      width: 80%;
+      width: 100%;
       max-width: 220px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       transition: all 0.3s ease;
@@ -98,16 +98,20 @@
 
   <div class="content">
     <img src="favu.png" alt="Logo Favu" class="favu" />
-    <div class="button-container">
-      <a class="button" href="https://drive.google.com/file/d/1l-T34oGWhFIWufZT-G3k3gYYXAm9qgUU/view" target="_blank">
-        Menu Bolos e Salgados
-      </a>
-      <a class="button" href="https://drive.google.com/file/d/12LuwPOnVKJEPvpo5OrgKuR7Hn4nTSQIi/view" target="_blank">
-        Menu Doces
-      </a>
-      <a class="button" href="https://wa.me/558199591775?text=Ol%C3%A1%2C%20Favu!%0ATudo%20bem%3F%0A%0AGostaria%20de%20fazer%20um%20or%C3%A7amento." target="_blank">
-        Fale com o Favu
-      </a>
+
+    <!-- Retângulo de fundo com botões -->
+    <div style="background-color: #F4E6CB; width: 100%; max-width: 400px; margin: 0 auto; padding: 20px 0;">
+      <div class="button-container">
+        <a class="button" href="https://drive.google.com/file/d/1l-T34oGWhFIWufZT-G3k3gYYXAm9qgUU/view" target="_blank">
+          Menu Bolos e Salgados
+        </a>
+        <a class="button" href="https://drive.google.com/file/d/12LuwPOnVKJEPvpo5OrgKuR7Hn4nTSQIi/view" target="_blank">
+          Menu Doces
+        </a>
+        <a class="button" href="https://wa.me/558199591775?text=Ol%C3%A1%2C%20Favu!%0ATudo%20bem%3F%0A%0AGostaria%20de%20fazer%20um%20or%C3%A7amento." target="_blank">
+          Fale com o Favu
+        </a>
+      </div>
     </div>
   </div>
 
