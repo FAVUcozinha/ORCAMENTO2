@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu Favu</title>
+  <style>
+    @font-face {
+      font-family: 'BasicChoice';
+      src: url('Basic Choice 2.ttf') format('truetype');
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #E09F41;
+      font-family: 'BasicChoice', sans-serif;
+      color: #131E0C;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    img {
+      width: 80%;
+      max-width: 320px;
+    }
+
+    .topo,
+    .roda {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      width: 80%;
+      max-width: 320px;
+    }
+
+    .topo {
+      top: 0;
+      height: 100px;
+    }
+
+    .roda {
+      bottom: 0;
+      height: 100px;
+    }
+
+    .content {
+      position: absolute;
+      top: 100px;
+      bottom: 100px;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+    }
+
+    .favu {
+      margin-bottom: 20px;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .button {
+      background-color: #7FB1C8;
+      color: #F4E6CB;
+      padding: 12px 20px;
+      text-decoration: none;
+      border-radius: 30px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      width: 100%;
+      max-width: 220px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+
+    .button:hover {
+      background-color: #F4E6CB;
+      color: #7FB1C8;
+    }
+  </style>
+</head>
+<body>
+  <img src="topo.png" alt="Topo do site" class="topo" />
+
+  <div class="content">
+    <img src="favu.png" alt="Logo Favu" class="favu" />
+    <div class="button-container">
+      <a class="button" href="https://drive.google.com/file/d/1l-T34oGWhFIWufZT-G3k3gYYXAm9qgUU/view" target="_blank">
+        Menu Bolos e Salgados
+      </a>
+      <a class="button" href="https://drive.google.com/file/d/12LuwPOnVKJEPvpo5OrgKuR7Hn4nTSQIi/view" target="_blank">
+        Menu Doces
+      </a>
+      <a class="button" href="https://wa.me/558199591775?text=Ol%C3%A1%2C%20Favu!%0ATudo%20bem%3F%0A%0AGostaria%20de%20fazer%20um%20or%C3%A7amento." target="_blank">
+        Fale com o Favu
+      </a>
+    </div>
+  </div>
+
+  <img src="roda.png" alt="Rodapé do site" class="roda" />
+</body>
+</html>
