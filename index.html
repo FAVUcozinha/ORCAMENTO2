@@ -24,7 +24,7 @@
         }
 
         body {
-            /* COR DE FUNDO AZUL (DO SEGUNDO CÓDIGO) */
+            /* COR DE FUNDO AZUL */
             background-color: #7FB1C8;
             text-align: center;
             color: white;
@@ -58,7 +58,7 @@
         /* ---------------------------------------------------------------------- */
 
         #sticky-nav-container {
-            /* COR LARANJA (DO SEGUNDO CÓDIGO) */
+            /* COR LARANJA */
             background-color: #E09F41;
             position: sticky;
             top: 0;
@@ -100,11 +100,7 @@
             scroll-snap-align: start;
         }
 
-        #categorias-horizontal a:hover {
-            background-color: #c9bda5;
-        }
-
-        /* Estilo da aba ATIVA (AZUL DO SEGUNDO CÓDIGO) */
+        /* Estilo da aba ATIVA (AZUL) */
         #categorias-horizontal a.active-link {
             background-color: #7FB1C8;
             color: white;
@@ -134,24 +130,23 @@
             border-bottom: none !important;
         }
 
-        /* Definindo larguras para as colunas - SEM QNT. MÍN. */
-        /* PADRÃO 4 COLUNAS: 1: Item (50%) | 2: TAMANHO/Preço (15%) | 3: UNID. (15%) | 4: QUANTIDADE (20%) */
+        /* Definindo larguras para as colunas */
         .categoria-group:not(#grupo-cookies) th:nth-child(1), .categoria-group:not(#grupo-cookies) td:nth-child(1) { width: 50%; }
         .categoria-group:not(#grupo-cookies) th:nth-child(2), .categoria-group:not(#grupo-cookies) td:nth-child(2) { width: 15%; }
         .categoria-group:not(#grupo-cookies) th:nth-child(3), .categoria-group:not(#grupo-cookies) td:nth-child(3) { width: 15%; }
         .categoria-group:not(#grupo-cookies) th:nth-child(4), .categoria-group:not(#grupo-cookies) td:nth-child(4) { width: 20%; }
 
         /* AJUSTE PARA A TABELA DE COOKIES (3 COLUNAS VISÍVEIS) */
-        /* 1: Item (55%) | 2: UNID. (Preço) (20%) | 3: QUANTIDADE (25%) */
         #tabela-cookies th:nth-child(1), #tabela-cookies td:nth-child(1) { width: 55%; } /* ITEM */
         #tabela-cookies th:nth-child(2), #tabela-cookies td:nth-child(2) { width: 20%; } /* UNID. (Preço) */
         #tabela-cookies th:nth-child(3), #tabela-cookies td:nth-child(3) { width: 25%; } /* QUANTIDADE */
 
+        /* ATENÇÃO: Corrigido o padding e vertical-align para melhor alinhamento */
         th, td {
             padding: 10px 5px;
             text-align: center;
-            vertical-align: middle;
-            color: white; /* Mantém cores brancas para dados de tabela */
+            vertical-align: middle; /* Importante para centralizar inputs verticalmente */
+            color: white;
         }
 
         /* Alinhamento da Coluna 1 (NÃO agrupada) */
@@ -168,24 +163,26 @@
         .item-nome { font-weight: bold; color: inherit; }
         .descricao { font-size: 12px; margin-top: 4px; color: inherit; }
 
-        /* Oculta mensagens de erro de mínimo (removidas por ser calculadora de orçamento) */
         .erro-item-unico, .erro-categoria {
             display: none !important;
         }
 
         /* Estilos do Input de Quantidade na Tabela Principal */
         .quantidade-container {
+            text-align: center;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 0;
-            margin: 0;
+            margin: auto; /* Centraliza o container na célula */
+            max-width: 100px; /* Limita largura para não ter inputs gigantes */
         }
+        
+        /* 🚨 AJUSTE PRINCIPAL AQUI: REMOVIDO height: 40px; e confiado no padding para dimensão 🚨 */
         .quantidade-container input[type="number"] {
-            width: 90%;
-            height: 40px;
-            padding: 5px;
+            width: 100%; /* Ocupa a largura total do container (máximo 100px) */
+            padding: 10px 5px; /* Aumentado padding vertical para dar altura */
             font-size: 16px;
             font-family: 'Basic Choice 2', Arial, sans-serif;
             text-align: center;
@@ -195,7 +192,9 @@
             border-radius: 10px;
             box-sizing: border-box;
             -moz-appearance: textfield;
+            line-height: 1; /* Garante que o texto fique bem centralizado */
         }
+
         /* OCULTAÇÃO DE SETAS */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
@@ -224,35 +223,12 @@
             text-align: left;
         }
 
-        #fixed-summary .summary-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        #summary-total {
-            font-size: 20px;
-            font-weight: bold;
-            color: #1A2B0F;
-        }
-
-        /* Botão de rodapé "Ver orçamento" - COR LARANJA (DO SEGUNDO CÓDIGO) */
         #summary-button {
             background-color: #E09F41;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            width: 150px;
-            text-align: center;
-            box-shadow: 0 4px #b87b2c; /* Sombra ajustada para o laranja */
-            transition: background-color 0.2s;
+            box-shadow: 0 4px #b87b2c;
         }
         #summary-button:active {
             box-shadow: 0 2px #b87b2c;
-            transform: translateY(2px);
         }
 
         /* ---------------------------------------------------------------------- */
@@ -282,156 +258,24 @@
             overflow-y: auto;
             color: #1A2B0F;
         }
-        .fechar {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            cursor: pointer;
-            z-index: 110;
-        }
-        .popup-conteudo h2 { color: #1A2B0F; font-size: 26px; font-weight: bold; }
-        .resumo-itens { text-align: left; color: #1A2B0F; margin-bottom: 10px;}
-        .resumo-total {
-            text-align: right;
-            font-size: 22px;
-            font-weight: bold;
-            color: #1A2B0F;
-            margin-top: 10px;
-        }
-        .resumo-total-line {
-            font-size: 16px;
-            font-weight: normal;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 5px;
-        }
-        .resumo-total-line.total-com-desconto {
-            color: #E60000;
-        }
-        #popup-resumo-total {
-            border-top: 1px dashed #7FB1C8;
-            padding-top: 10px;
-            margin-top: 10px;
-        }
-        .resumo-item-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px dashed #7FB1C8;
-            padding: 8px 0;
-            font-size: 14px;
-        }
-        .resumo-item-name { flex-grow: 1; text-align: left; margin-right: 10px; }
-        .resumo-item-name small { display: block; font-weight: normal; color: #1A2B0F; }
-        .resumo-item-name .price-final-item { color: #1A2B0F; font-weight: bold; }
-        .resumo-item-input-group { display: flex; align-items: center; flex-shrink: 0; gap: 5px; }
         .resumo-item-input-group input {
-            background-color: white;
-            border: 1px solid #ccc;
-            color: #1A2B0F;
-            font-family: 'Basic Choice 2', Arial, sans-serif;
+            /* Input de edição rápida no popup precisa da altura definida */
             width: 55px;
             height: 35px;
             padding: 5px;
-            font-size: 14px;
-            text-align: center;
-            border-radius: 10px;
-            box-sizing: border-box;
-            margin: 0;
-            -moz-appearance: textfield;
         }
-        .btn-excluir {
-            background-color: #E60000;
-            color: white;
-            width: 70px;
-            font-size: 12px;
-            padding: 10px 0;
-            margin: 0 0 0 10px;
-            border-radius: 10px;
-            box-shadow: none;
-            flex-shrink: 0;
-            line-height: 1;
-            height: 40px;
-            border: none;
-            cursor: pointer;
-            font-family: 'Basic Choice 2', Arial, sans-serif;
-        }
-
-        /* Desconto Manual Styles */
-        #desconto-container {
-            background-color: #e8dcc6;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            text-align: left;
-            color: #1A2B0F;
-        }
-
-        #desconto-input-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            align-items: center;
-        }
-
-        #desconto-input {
-            flex-grow: 1;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid #7FB1C8;
-            background-color: white;
-            color: #1A2B0F;
-            box-sizing: border-box;
-            height: 40px;
-            text-align: left;
-            font-weight: bold;
-            font-family: 'Basic Choice 2', Arial, sans-serif;
-            font-size: 16px;
-        }
-
-        /* Botão APLICAR - COR AZUL (DO SEGUNDO CÓDIGO) */
         #apply-desconto-btn {
-            width: 90px;
-            flex-shrink: 0;
-            padding: 10px 0;
-            margin: 0;
-            font-size: 14px;
             background-color: #7FB1C8;
-            border-radius: 10px;
-            height: 40px;
-            box-shadow: none; /* Remove sombra para contraste com o botão principal */
+            box-shadow: none;
         }
-        .cupom-message {
-            margin-top: 10px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .cupom-error { color: red; }
-        .cupom-success { color: green; }
         
-        /* Botões Padrão (Fazer Pedido/Adicionar Itens) - COR AZUL (DO SEGUNDO CÓDIGO) */
+        /* Botões Padrão (Fazer Pedido/Adicionar Itens) - COR AZUL */
         button {
-            padding: 10px;
-            border-radius: 20px;
             background-color: #7FB1C8;
-            border: none;
-            color: #FFF;
-            cursor: pointer;
-            font-family: 'Basic Choice 2', Arial, sans-serif;
-            width: 100%;
-            font-size: 18px;
-            margin-top: 10px;
             box-shadow: 0 4px #4c7e93;
         }
-        button:active {
-            box-shadow: 0 2px #4c7e93;
-            transform: translateY(2px);
-        }
 
-        /* Botão Voltar (Laranja do segundo código) */
+        /* Botão Voltar (Laranja) */
         #botao-voltar {
             background-color: #E09F41;
             box-shadow: 0 4px #b87b2c;
@@ -439,39 +283,9 @@
             margin-top: 20px;
         }
 
-        /* Estilos do Popup de Informações do Pedido */
-        #form-pedido {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            text-align: left;
-            color: #1A2B0F;
-        }
-        #form-pedido label {
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: -5px;
-        }
-        #form-pedido input[type="text"],
-        #form-pedido input[type="date"],
-        #form-pedido input[type="time"],
-        #form-pedido select {
-            background-color: white;
-            color: #1A2B0F;
-            border: 1px solid #7FB1C8;
-            padding: 10px;
-            border-radius: 10px;
-            font-family: 'Basic Choice 2', Arial, sans-serif;
-            font-size: 16px;
-            width: 100%;
-            box-sizing: border-box;
-            text-align: left;
-        }
-        /* Ajuste para botões dentro do form */
-        #form-pedido button {
-            margin-top: 15px;
-        }
-
+        /* ---------------------------------------------------------------------- */
+        /* Media Queries (Mantidos) */
+        /* ---------------------------------------------------------------------- */
         @media (max-width: 767px) {
             header img:nth-of-type(2) { display: none; }
             header img, footer img { width: 100%; }
@@ -522,7 +336,7 @@
                     <th>UNID.</th>
                     <th>QUANTIDADE</th>
                 </tr>
-                <tbody></tbody>
+                <tbody></tby>
             </table>
         </div>
 
@@ -578,7 +392,7 @@
                     <th>UNID.</th>
                     <th>QUANTIDADE</th>
                 </tr>
-                <tbody></tby>
+                <tbody></tbody>
             </table>
         </div>
 
@@ -864,7 +678,6 @@
             "tabela-bolo-tradicional": { itens: itensBoloTradicional, nomeGrupo: "Bolos Tradicionais", img: "img-bolo-tradicional", minTotal: 0 },
             "tabela-bolo-especial": { itens: itensBoloEspecial, nomeGrupo: "Bolos Especiais", img: "img-bolo-especial", minTotal: 0 },
             "tabela-doces": { itens: itensDoces, nomeGrupo: "Doces", img: "img-doces", minTotal: 0 },
-            // minTotal = 0 e min individual = 1 para remover restrições
             "tabela-cookies": { itens: itensCookies, nomeGrupo: "Cookies", img: "img-cookies", minTotal: 0, minIndividual: 1 },
             "tabela-salfri": { itens: itensSalgadoFrito, nomeGrupo: "Salgados Fritos", img: "img-salfri", minTotal: 0 },
             "tabela-salgado-forno": { itens: itensSalgadoForno, nomeGrupo: "Salgados Assados", img: "img-salgado-forno", minTotal: 0 },
@@ -873,7 +686,7 @@
         };
 
         // -----------------------------------------------------
-        // FUNÇÕES DE CRIAÇÃO E ROLAGEM (ADAPTADAS)
+        // FUNÇÕES DE CRIAÇÃO E ROLAGEM
         // -----------------------------------------------------
 
         function criarTabelaGrupo(grupo, idTabela, nomeGrupo) {
@@ -892,7 +705,6 @@
 
             const isGroupedTable = idTabela.includes('bolo') || idTabela.includes('prato');
             const isCookieTable = idTabela === 'tabela-cookies';
-            // Flag para saber se a coluna 2 mostra o preço (Doces/Salgados)
             const isPriceColumn2 = idTabela.includes('doces') || idTabela.includes('salfri') || idTabela.includes('salgado-forno') || idTabela.includes('salgado-vegetariano');
 
 
@@ -900,7 +712,6 @@
                 const item = grupo[i];
                 const tr = document.createElement("tr");
 
-                // Coluna 2 é o preço (Cookies/Doces/Salgados) ou Tamanho (Bolos/Pratos)
                 const coluna2 = isCookieTable ? item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : (isPriceColumn2 ? item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : (item.tamanho || ''));
                 const precoFormatado = item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 const itemId = item.id;
@@ -927,7 +738,6 @@
                         tr.classList.add('item-group-active');
                     }
 
-                    // CÉLULAS DE TAMANHO/UNID./QUANTIDADE PARA AGRUPADOS (Bolos, Pratos)
                     const celulasAgrupadas = `
                         <td>${coluna2}</td>
                         <td>R$ ${precoFormatado}</td>
@@ -949,7 +759,6 @@
                         tr.innerHTML = celulasAgrupadas;
                     }
                 } else if (isCookieTable) {
-                    // CÓDIGO PARA COOKIES (3 COLUNAS VISÍVEIS)
                     tr.innerHTML = `
                         <td>
                             <div class="item-nome">${item.nome}</div>
@@ -963,7 +772,6 @@
                         </td>
                     `;
                 } else {
-                    // CÓDIGO PARA DOCES, SALGADOS FRITOS, FORNO, VEGETARIANOS (4 COLUNAS VISÍVEIS - Coluna 2 é o Preço Unid.)
                     tr.innerHTML = `
                         <td>
                             <div class="item-nome">${item.nome}</div>
@@ -1025,7 +833,7 @@
 
 
         // -----------------------------------------------------
-        // FUNÇÕES DE DESCONTO MANUAL (SEGUNDO CÓDIGO)
+        // FUNÇÕES DE DESCONTO MANUAL
         // -----------------------------------------------------
 
         function formatarEAtualizarDesconto(inputElement) {
@@ -1059,6 +867,7 @@
                 descontoMessage.className = 'cupom-message cupom-success';
             } else if (descontoAplicado === 0) {
                 descontoMessage.textContent = '';
+                descontoMessage.className = 'cupom-message';
             } else {
                  descontoMessage.textContent = 'Valor de desconto inválido. Corrija o valor.';
                  descontoMessage.className = 'cupom-message cupom-error';
@@ -1067,7 +876,7 @@
 
 
         // -----------------------------------------------------
-        // FUNÇÕES DE EDIÇÃO E ATUALIZAÇÃO (ADAPTADAS)
+        // FUNÇÕES DE EDIÇÃO E ATUALIZAÇÃO
         // -----------------------------------------------------
 
         function excluirItem(itemId) {
@@ -1121,7 +930,6 @@
 
             const gruposResumo = {};
 
-            // Calcula o total Bruto e total de Itens
             document.querySelectorAll(".quantidade-input").forEach(input => {
                 const quantidade = parseInt(input.value) || 0;
                 const preco = parseFloat(input.getAttribute("data-preco")) || 0;
@@ -1139,14 +947,12 @@
                 }
             });
 
-            // Aplica o desconto em R$ (garante que não seja negativo e não ultrapasse o total bruto)
             const descontoTotal = Math.min(Math.max(0, descontoAplicado), totalBruto);
             let totalLiquido = totalBruto - descontoTotal;
 
             const totalBrutoFormatado = totalBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             const totalLiquidoFormatado = totalLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-            // 1. Atualiza o conteúdo do Pop-up Resumo (Itens)
             for (const grupo in gruposResumo) {
                 resumoItensPopup.innerHTML += `<strong>${grupo}:</strong><br>`;
                 gruposResumo[grupo].forEach(item => {
@@ -1175,7 +981,6 @@
                 });
             }
 
-            // 2. Atualiza o total exibido no Pop-up (incluindo desconto se houver)
             if (descontoTotal > 0) {
                  resumoTotalPopup.innerHTML = `
                     <div class="resumo-total-line">SUBTOTAL: R$ ${totalBrutoFormatado}</div>
@@ -1184,9 +989,9 @@
                     `;
             } else {
                  resumoTotalPopup.textContent = `TOTAL: R$ ${totalBrutoFormatado}`;
+                 resumoTotalPopup.innerHTML = `<div class="resumo-total">TOTAL: R$ ${totalBrutoFormatado}</div>`;
             }
 
-            // 3. Controla a visibilidade do botão "Concluir Pedido" no pop-up
             if (totalBruto > 0) {
                  fazerPedidoContainer.innerHTML = '<button onclick="abrirPopup()">CONCLUIR ORÇAMENTO</button>';
             } else {
@@ -1196,7 +1001,6 @@
                  document.getElementById('desconto-message').textContent = '';
             }
 
-            // 4. Atualiza e exibe o Rodapé Fixo
             if (totalBruto > 0) {
                 document.getElementById("summary-total").textContent = `R$ ${totalLiquidoFormatado}`;
                 document.getElementById("summary-item-count").textContent = ` / ${totalItens} ${totalItens === 1 ? 'item' : 'itens'}`;
@@ -1314,7 +1118,6 @@
             const totalLiquidoFormatado = totalLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 
-            // Monta o resumo em texto para o WhatsApp
             for (const grupo in gruposResumo) {
                 resumoWhatsapp += `*${grupo}:*\n`;
                 gruposResumo[grupo].forEach(item => {
@@ -1341,7 +1144,6 @@
             const horario = document.getElementById("horario").value;
             const pagamento = document.getElementById("pagamento").value;
 
-            // Validação dos campos do cliente (obrigatórios)
             if (!nome || !data || !horario || !pagamento || pagamento === "") {
                 alert("Por gentileza, preencha todos os campos do pedido (Nome, Data, Horário e Forma de Pagamento).");
                 return;
@@ -1350,7 +1152,6 @@
             const dataParts = data.split("-");
             const dataFormatada = `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}`;
 
-            // Inclui a linha separadora e as informações do cliente
             resumoWhatsapp += linhaSeparadora;
 
             resumoWhatsapp += `_*- Informações para a Entrega/Retirada:*_\n\n*Nome do Cliente*: ${nome}\n*Data da Entrega/Retirada*: ${dataFormatada}\n*Horário Estimado*: ${horario}\n*Forma de Pagamento Combinada*: ${pagamento}`;
@@ -1358,7 +1159,6 @@
             const whatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(resumoWhatsapp)}`;
             window.open(whatsappLink, '_blank');
 
-            // Após enviar, reseta a calculadora.
             resetarCampos();
         }
 
@@ -1425,7 +1225,6 @@
                 }
             });
 
-            // Inicia o cálculo total
             atualizarTotal();
         });
     </script>
