@@ -857,7 +857,7 @@
         // Variável global para armazenar o DESCONTO em Reais (R$)
         let descontoAplicado = 0;
         
-        // PREFIXO FIXO DO WHATSAPP
+        // PREFIXO FIXO DO WHATSAPP (País + DDD)
         const PREFIXO_WHATSAPP = "5581";
 
         // -----------------------------------------------------
@@ -1593,15 +1593,15 @@
             const horario = document.getElementById("horario").value;
             const pagamento = document.getElementById("pagamento").value;
             
-            // Validação dos campos do cliente (agora verificando se o complemento tem 8 OU 9 dígitos)
+            // Validação dos campos do cliente 
             if (!nome || !data || !horario || !pagamento || pagamento === "") {
                 alert("Por gentileza, preencha todos os campos do pedido (Nome, Data, Horário e Forma de Pagamento).");
                 return;
             }
             
-            // Validação de 8 ou 9 dígitos para o telefone
-            if (telefoneComplemento.length < 8 || telefoneComplemento.length > 9) {
-                 alert(`O complemento do WhatsApp deve ter 8 ou 9 dígitos. Você digitou ${telefoneComplemento.length}. Por favor, verifique.`);
+            // Validação de 8 ou 9 dígitos para o telefone (o mínimo de 8 e máximo de 9 já é controlado pelo input)
+            if (telefoneComplemento.length < 8) {
+                 alert(`O complemento do WhatsApp deve ter no mínimo 8 dígitos. Por favor, verifique.`);
                  return;
             }
 
@@ -1614,8 +1614,8 @@
             
             resumoWhatsapp += `_*- Informações para a Entrega/Retirada:*_\n\n*Nome do Cliente*: ${nome}\n*WhatsApp do Cliente*: ${telefoneCompleto}\n*Data da Entrega/Retirada*: ${dataFormatada}\n*Horário Estimado*: ${horario}\n*Forma de Pagamento Combinada*: ${pagamento}`;
 
-            // Gera o link do WhatsApp usando o número completo (5581 + complemento)
-            const whatsappLink = `https://wa.me/${telefoneCompleto}?text=${encodeURIComponent(resumoWhatsapp)}`;
+            // NOVO LINK: Tenta forçar a abertura no WhatsApp Business
+            const whatsappLink = `whatsapp-business://send?phone=${telefoneCompleto}&text=${encodeURIComponent(resumoWhatsapp)}`;
             window.open(whatsappLink, '_blank');
 
             // Após enviar o pedido, reseta a calculadora.
