@@ -1,546 +1,1434 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAVU - Cozinha Afetiva</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Calculadora de Orçamento (Simulação)</title>
+    <style>
+        /* ---------------------------------------------------------------------- */
+        /* ESTILOS GERAIS E FONTES */
+        /* ---------------------------------------------------------------------- */
+        @font-face {
+            font-family: 'Basic Choice 2';
+            /* Assumindo que a fonte está na pasta 'fonts/' */
+            src: url('fonts/Basic Choice 2.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            /* COR DE FUNDO AZUL (DO SEGUNDO CÓDIGO) */
+            background-color: #7FB1C8;
+            text-align: center;
+            color: white;
+            font-family: 'Basic Choice 2', Arial, sans-serif;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 70px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+
+        img {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0;
+        }
+
+        header img:first-child {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0;
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* BARRA DE NAVEGAÇÃO (STICKY) */
+        /* ---------------------------------------------------------------------- */
+
+        #sticky-nav-container {
+            /* COR LARANJA (DO SEGUNDO CÓDIGO) */
+            background-color: #E09F41;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            width: 100%;
+            padding: 5px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #categorias-horizontal {
+            display: flex;
+            overflow-x: scroll;
+            padding: 5px 10px;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Esconde a barra de rolagem horizontal */
+        #categorias-horizontal::-webkit-scrollbar {
+            display: none;
+        }
+        #categorias-horizontal {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        #categorias-horizontal a {
+            display: inline-block;
+            padding: 8px 15px;
+            margin-right: 10px;
+            background-color: #F4E6CB;
+            color: #1A2B0F;
+            text-decoration: none;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+        }
+
+        #categorias-horizontal a:hover {
+            background-color: #c9bda5;
+        }
+
+        /* Estilo da aba ATIVA (AZUL DO SEGUNDO CÓDIGO) */
+        #categorias-horizontal a.active-link {
+            background-color: #7FB1C8;
+            color: white;
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* ESTILOS DAS TABELAS */
+        /* ---------------------------------------------------------------------- */
+        .categoria-group {
+            display: none;
+        }
+        .categoria-group.active-group {
+            display: block;
+        }
+        .categoria-group img {
+            width: 50%;
+            margin: 20px auto 10px auto;
+        }
+        .categoria-group table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .categoria-group tr {
+            border-bottom: 1px solid #F4E6CB;
+        }
+        .item-group-active {
+            border-bottom: none !important;
+        }
+
+        /* Definindo larguras para as colunas - SEM QNT. MÍN. */
+        /* PADRÃO 4 COLUNAS: 1: Item (50%) | 2: TAMANHO/Preço (15%) | 3: UNID. (15%) | 4: QUANTIDADE (20%) */
+        .categoria-group:not(#grupo-cookies) th:nth-child(1), .categoria-group:not(#grupo-cookies) td:nth-child(1) { width: 50%; }
+        .categoria-group:not(#grupo-cookies) th:nth-child(2), .categoria-group:not(#grupo-cookies) td:nth-child(2) { width: 15%; }
+        .categoria-group:not(#grupo-cookies) th:nth-child(3), .categoria-group:not(#grupo-cookies) td:nth-child(3) { width: 15%; }
+        .categoria-group:not(#grupo-cookies) th:nth-child(4), .categoria-group:not(#grupo-cookies) td:nth-child(4) { width: 20%; }
+
+        /* AJUSTE PARA A TABELA DE COOKIES (3 COLUNAS VISÍVEIS) */
+        /* 1: Item (55%) | 2: UNID. (Preço) (20%) | 3: QUANTIDADE (25%) */
+        #tabela-cookies th:nth-child(1), #tabela-cookies td:nth-child(1) { width: 55%; } /* ITEM */
+        #tabela-cookies th:nth-child(2), #tabela-cookies td:nth-child(2) { width: 20%; } /* UNID. (Preço) */
+        #tabela-cookies th:nth-child(3), #tabela-cookies td:nth-child(3) { width: 25%; } /* QUANTIDADE */
+
+        th, td {
+            padding: 10px 5px;
+            text-align: center;
+            vertical-align: middle;
+            color: white; /* Mantém cores brancas para dados de tabela */
+        }
+
+        /* Alinhamento da Coluna 1 (NÃO agrupada) */
+        .categoria-group table:not(#tabela-prato-salgado):not(#tabela-bolo-tradicional):not(#tabela-bolo-especial) td:nth-child(1) {
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        .item-group-cell {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .item-nome { font-weight: bold; color: inherit; }
+        .descricao { font-size: 12px; margin-top: 4px; color: inherit; }
+
+        /* Oculta mensagens de erro de mínimo (removidas por ser calculadora de orçamento) */
+        .erro-item-unico, .erro-categoria {
+            display: none !important;
+        }
+
+        /* Estilos do Input de Quantidade na Tabela Principal */
+        .quantidade-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+        }
+        .quantidade-container input[type="number"] {
+            width: 90%;
+            height: 40px;
+            padding: 5px;
+            font-size: 16px;
+            font-family: 'Basic Choice 2', Arial, sans-serif;
+            text-align: center;
+            background-color: #F4E6CB;
+            border: 2px solid #F4E6CB;
+            color: #1A2B0F;
+            border-radius: 10px;
+            box-sizing: border-box;
+            -moz-appearance: textfield;
+        }
+        /* OCULTAÇÃO DE SETAS */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* RODAPÉ FIXO (RESUMO DO PEDIDO) */
+        /* ---------------------------------------------------------------------- */
+        #fixed-summary {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            left: 0;
+            right: 0;
+            background-color: #F4E6CB;
+            color: #1A2B0F;
+            padding: 10px 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 50;
+            display: none;
+            box-sizing: border-box;
+            text-align: left;
+        }
+
+        #fixed-summary .summary-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #summary-total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1A2B0F;
+        }
+
+        /* Botão de rodapé "Ver orçamento" - COR LARANJA (DO SEGUNDO CÓDIGO) */
+        #summary-button {
+            background-color: #E09F41;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            width: 150px;
+            text-align: center;
+            box-shadow: 0 4px #b87b2c; /* Sombra ajustada para o laranja */
+            transition: background-color 0.2s;
+        }
+        #summary-button:active {
+            box-shadow: 0 2px #b87b2c;
+            transform: translateY(2px);
+        }
+
+        /* ---------------------------------------------------------------------- */
+        /* ESTILOS DE POPUP E BOTÕES */
+        /* ---------------------------------------------------------------------- */
+        .popup {
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            display: none;
+        }
+        .popup-conteudo {
+            background-color: #F4E6CB;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: #1A2B0F;
+        }
+        .fechar {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+            z-index: 110;
+        }
+        .popup-conteudo h2 { color: #1A2B0F; font-size: 26px; font-weight: bold; }
+        .resumo-itens { text-align: left; color: #1A2B0F; margin-bottom: 10px;}
+        .resumo-total {
+            text-align: right;
+            font-size: 22px;
+            font-weight: bold;
+            color: #1A2B0F;
+            margin-top: 10px;
+        }
+        .resumo-total-line {
+            font-size: 16px;
+            font-weight: normal;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+        .resumo-total-line.total-com-desconto {
+            color: #E60000;
+        }
+        #popup-resumo-total {
+            border-top: 1px dashed #7FB1C8;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .resumo-item-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed #7FB1C8;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        .resumo-item-name { flex-grow: 1; text-align: left; margin-right: 10px; }
+        .resumo-item-name small { display: block; font-weight: normal; color: #1A2B0F; }
+        .resumo-item-name .price-final-item { color: #1A2B0F; font-weight: bold; }
+        .resumo-item-input-group { display: flex; align-items: center; flex-shrink: 0; gap: 5px; }
+        .resumo-item-input-group input {
+            background-color: white;
+            border: 1px solid #ccc;
+            color: #1A2B0F;
+            font-family: 'Basic Choice 2', Arial, sans-serif;
+            width: 55px;
+            height: 35px;
+            padding: 5px;
+            font-size: 14px;
+            text-align: center;
+            border-radius: 10px;
+            box-sizing: border-box;
+            margin: 0;
+            -moz-appearance: textfield;
+        }
+        .btn-excluir {
+            background-color: #E60000;
+            color: white;
+            width: 70px;
+            font-size: 12px;
+            padding: 10px 0;
+            margin: 0 0 0 10px;
+            border-radius: 10px;
+            box-shadow: none;
+            flex-shrink: 0;
+            line-height: 1;
+            height: 40px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Basic Choice 2', Arial, sans-serif;
+        }
+
+        /* Desconto Manual Styles */
+        #desconto-container {
+            background-color: #e8dcc6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: left;
+            color: #1A2B0F;
+        }
+
+        #desconto-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        #desconto-input {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #7FB1C8;
+            background-color: white;
+            color: #1A2B0F;
+            box-sizing: border-box;
+            height: 40px;
+            text-align: left;
+            font-weight: bold;
+            font-family: 'Basic Choice 2', Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        /* Botão APLICAR - COR AZUL (DO SEGUNDO CÓDIGO) */
+        #apply-desconto-btn {
+            width: 90px;
+            flex-shrink: 0;
+            padding: 10px 0;
+            margin: 0;
+            font-size: 14px;
+            background-color: #7FB1C8;
+            border-radius: 10px;
+            height: 40px;
+            box-shadow: none; /* Remove sombra para contraste com o botão principal */
+        }
+        .cupom-message {
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .cupom-error { color: red; }
+        .cupom-success { color: green; }
+        
+        /* Botões Padrão (Fazer Pedido/Adicionar Itens) - COR AZUL (DO SEGUNDO CÓDIGO) */
+        button {
+            padding: 10px;
+            border-radius: 20px;
+            background-color: #7FB1C8;
+            border: none;
+            color: #FFF;
+            cursor: pointer;
+            font-family: 'Basic Choice 2', Arial, sans-serif;
+            width: 100%;
+            font-size: 18px;
+            margin-top: 10px;
+            box-shadow: 0 4px #4c7e93;
+        }
+        button:active {
+            box-shadow: 0 2px #4c7e93;
+            transform: translateY(2px);
+        }
+
+        /* Botão Voltar (Laranja do segundo código) */
+        #botao-voltar {
+            background-color: #E09F41;
+            box-shadow: 0 4px #b87b2c;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+
+        /* Estilos do Popup de Informações do Pedido */
+        #form-pedido {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: left;
+            color: #1A2B0F;
+        }
+        #form-pedido label {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: -5px;
+        }
+        #form-pedido input[type="text"],
+        #form-pedido input[type="date"],
+        #form-pedido input[type="time"],
+        #form-pedido select {
+            background-color: white;
+            color: #1A2B0F;
+            border: 1px solid #7FB1C8;
+            padding: 10px;
+            border-radius: 10px;
+            font-family: 'Basic Choice 2', Arial, sans-serif;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left;
+        }
+        /* Ajuste para botões dentro do form */
+        #form-pedido button {
+            margin-top: 15px;
+        }
+
+        @media (max-width: 767px) {
+            header img:nth-of-type(2) { display: none; }
+            header img, footer img { width: 100%; }
+        }
+    </style>
+
 </head>
 <body>
-    <!-- Arquivo de fundo verde para a versão desktop -->
-    <div class="green-background"></div>
+    <div class="container">
+        <header>
+            <img src="topo.png" alt="Topo">
+        </header>
 
-    <!-- Cabeçalho -->
-    <header>
-        <img src="images/topo.png" alt="Imagem Cabeçalho" class="header-image">
-    </header>
-
-    <!-- Conteúdo Principal -->
-    <main>
-        <!-- Imagem Central -->
-        <section class="main-content">
-            <img src="images/favu.png" alt="Imagem FAVU" class="main-image">
-        </section>
-
-        <!-- Seção dos Botões -->
-        <section class="buttons-section">
-            <div class="buttons-container">
-                <a href="https://favucozinha.github.io/Quemsomos/" class="button">Conheça a FAVU</a>
-                <a href="https://favucozinha.github.io/Cardapio/" class="button">Cardápio</a>
-                <a href="https://wa.me/5581995256641?text=Ol%C3%A1%2C%20Favu.%0AGostaria%20de%20fazer%20um%20pedido%21" class="button">Falar com o Favu</a>
+        <div id="sticky-nav-container">
+            <div id="categorias-horizontal">
+                <a href="#grupo-bolo-tradicional" data-target="grupo-bolo-tradicional" data-img="img-bolo-tradicional">Bolos Tradicionais</a>
+                <a href="#grupo-bolo-especial" data-target="grupo-bolo-especial" data-img="img-bolo-especial">Bolos Especiais</a>
+                <a href="#grupo-doces" data-target="grupo-doces" data-img="img-doces">Doces</a>
+                <a href="#grupo-cookies" data-target="grupo-cookies" data-img="img-cookies">Cookies</a>
+                <a href="#grupo-salfri" data-target="grupo-salfri" data-img="img-salfri">Salgados Fritos</a>
+                <a href="#grupo-salgado-forno" data-target="grupo-salgado-forno" data-img="img-salgado-forno">Salgados Forno</a>
+                <a href="#grupo-salgado-vegetariano" data-target="grupo-salgado-vegetariano" data-img="img-salgado-vegetariano">Salgados Vegetarianos</a>
+                <a href="#grupo-prato-salgado" data-target="grupo-prato-salgado" data-img="img-prato-salgado">Pratos Salgados</a>
             </div>
-        </section>
+        </div>
 
-        <!-- Slideshow -->
-        <section class="slideshow-section">
-            <div class="slideshow">
-                <img src="images/S01.jpg" alt="Imagem 1">
-                <img src="images/S02.jpg" alt="Imagem 2">
-                <img src="images/S03.jpg" alt="Imagem 3">
-                <img src="images/S04.jpg" alt="Imagem 4">
-                <img src="images/S05.jpg" alt="Imagem 5">
-                <img src="images/S06.jpg" alt="Imagem 6">
-                <img src="images/S07.jpg" alt="Imagem 7">
-                <img src="images/S08.jpg" alt="Imagem 8">
-                <img src="images/S09.jpg" alt="Imagem 9">
-                <img src="images/S10.jpg" alt="Imagem 10">
-                <img src="images/S11.jpg" alt="Imagem 11">
-                <img src="images/S12.jpg" alt="Imagem 12">
-                <img src="images/S13.jpg" alt="Imagem 13">
-                <img src="images/S14.jpg" alt="Imagem 14">
-                <img src="images/S15.jpg" alt="Imagem 15">
-                <img src="images/S16.jpg" alt="Imagem 16">
-                <img src="images/S17.jpg" alt="Imagem 17">
-                <img src="images/S18.jpg" alt="Imagem 18">
-                <img src="images/S19.jpg" alt="Imagem 19">
-                <img src="images/S20.jpg" alt="Imagem 20">
-                <img src="images/S21.jpg" alt="Imagem 21">
-                <img src="images/S22.jpg" alt="Imagem 22">
-                <img src="images/S01.jpg" alt="Imagem 23">
-                <img src="images/S02.jpg" alt="Imagem 24">
-                <img src="images/S03.jpg" alt="Imagem 25">
-                <img src="images/S04.jpg" alt="Imagem 26">
-                <img src="images/S05.jpg" alt="Imagem 27">
-                <img src="images/S06.jpg" alt="Imagem 28">
-                <img src="images/S07.jpg" alt="Imagem 29">
-                <img src="images/S08.jpg" alt="Imagem 30">
-                <img src="images/S09.jpg" alt="Imagem 31">
-                <img src="images/S10.jpg" alt="Imagem 32">
-                <img src="images/S11.jpg" alt="Imagem 33">
-                <img src="images/S12.jpg" alt="Imagem 34">
-                <img src="images/S13.jpg" alt="Imagem 35">
-                <img src="images/S14.jpg" alt="Imagem 36">
-                <img src="images/S15.jpg" alt="Imagem 37">
-                <img src="images/S16.jpg" alt="Imagem 38">
-                <img src="images/S17.jpg" alt="Imagem 39">
-                <img src="images/S18.jpg" alt="Imagem 40">
-                <img src="images/S19.jpg" alt="Imagem 41">
-                <img src="images/S20.jpg" alt="Imagem 42">
-                <img src="images/S21.jpg" alt="Imagem 43">
-                <img src="images/S22.jpg" alt="Imagem 44">
-                <img src="images/S01.jpg" alt="Imagem 45">
-                <img src="images/S02.jpg" alt="Imagem 46">
-                <img src="images/S03.jpg" alt="Imagem 47">
-                <img src="images/S04.jpg" alt="Imagem 48">
-                <img src="images/S05.jpg" alt="Imagem 49">
-                <img src="images/S06.jpg" alt="Imagem 50">
-                <img src="images/S07.jpg" alt="Imagem 51">
-                <img src="images/S08.jpg" alt="Imagem 52">
-                <img src="images/S09.jpg" alt="Imagem 53">
-                <img src="images/S10.jpg" alt="Imagem 54">
-                <img src="images/S11.jpg" alt="Imagem 55">
-                <img src="images/S12.jpg" alt="Imagem 56">
-                <img src="images/S13.jpg" alt="Imagem 57">
-                <img src="images/S14.jpg" alt="Imagem 58">
-                <img src="images/S15.jpg" alt="Imagem 59">
-                <img src="images/S16.jpg" alt="Imagem 60">
-                <img src="images/S17.jpg" alt="Imagem 61">
-                <img src="images/S18.jpg" alt="Imagem 62">
-                <img src="images/S19.jpg" alt="Imagem 63">
-                <img src="images/S20.jpg" alt="Imagem 64">
-                <img src="images/S21.jpg" alt="Imagem 65">
-                <img src="images/S22.jpg" alt="Imagem 66">
-                <img src="images/S01.jpg" alt="Imagem 67">
-                <img src="images/S02.jpg" alt="Imagem 68">
-                <img src="images/S03.jpg" alt="Imagem 69">
-                <img src="images/S04.jpg" alt="Imagem 70">
-                <img src="images/S05.jpg" alt="Imagem 71">
-                <img src="images/S06.jpg" alt="Imagem 72">
-                <img src="images/S07.jpg" alt="Imagem 73">
-                <img src="images/S08.jpg" alt="Imagem 74">
-                <img src="images/S09.jpg" alt="Imagem 75">
-                <img src="images/S10.jpg" alt="Imagem 76">
-                <img src="images/S11.jpg" alt="Imagem 77">
-                <img src="images/S12.jpg" alt="Imagem 78">
-                <img src="images/S13.jpg" alt="Imagem 79">
-                <img src="images/S14.jpg" alt="Imagem 80">
-                <img src="images/S15.jpg" alt="Imagem 81">
-                <img src="images/S16.jpg" alt="Imagem 82">
-                <img src="images/S17.jpg" alt="Imagem 83">
-                <img src="images/S18.jpg" alt="Imagem 84">
-                <img src="images/S19.jpg" alt="Imagem 85">
-                <img src="images/S20.jpg" alt="Imagem 86">
-                <img src="images/S21.jpg" alt="Imagem 87">
-                <img src="images/S22.jpg" alt="Imagem 88">
-                <img src="images/S01.jpg" alt="Imagem 89">
-                <img src="images/S02.jpg" alt="Imagem 90">
-                <img src="images/S03.jpg" alt="Imagem 91">
-                <img src="images/S04.jpg" alt="Imagem 92">
-                <img src="images/S05.jpg" alt="Imagem 93">
-                <img src="images/S06.jpg" alt="Imagem 94">
-                <img src="images/S07.jpg" alt="Imagem 95">
-                <img src="images/S08.jpg" alt="Imagem 96">
-                <img src="images/S09.jpg" alt="Imagem 97">
-                <img src="images/S10.jpg" alt="Imagem 98">
-                <img src="images/S11.jpg" alt="Imagem 99">
-                <img src="images/S12.jpg" alt="Imagem 100">
-                <img src="images/S101.jpg" alt="Imagem 101">
-                <img src="images/S102.jpg" alt="Imagem 102">
-                <img src="images/S103.jpg" alt="Imagem 103">
-                <img src="images/S104.jpg" alt="Imagem 104">
-                <img src="images/S105.jpg" alt="Imagem 105">
-                <img src="images/S106.jpg" alt="Imagem 106">
-                <img src="images/S107.jpg" alt="Imagem 107">
-                <img src="images/S108.jpg" alt="Imagem 108">
-                <img src="images/S109.jpg" alt="Imagem 109">
-                <img src="images/S110.jpg" alt="Imagem 110">
-                <img src="images/S111.jpg" alt="Imagem 111">
-                <img src="images/S112.jpg" alt="Imagem 112">
-                <img src="images/S113.jpg" alt="Imagem 113">
-                <img src="images/S114.jpg" alt="Imagem 114">
-                <img src="images/S115.jpg" alt="Imagem 115">
-                <img src="images/S116.jpg" alt="Imagem 116">
-                <img src="images/S117.jpg" alt="Imagem 117">
-                <img src="images/S118.jpg" alt="Imagem 118">
-                <img src="images/S119.jpg" alt="Imagem 119">
-                <img src="images/S120.jpg" alt="Imagem 120">
-                <img src="images/S121.jpg" alt="Imagem 121">
-                <img src="images/S122.jpg" alt="Imagem 122">
-                <img src="images/S123.jpg" alt="Imagem 123">
-                <img src="images/S124.jpg" alt="Imagem 124">
-                <img src="images/S125.jpg" alt="Imagem 125">
-                <img src="images/S126.jpg" alt="Imagem 126">
-                <img src="images/S127.jpg" alt="Imagem 127">
-                <img src="images/S128.jpg" alt="Imagem 128">
-                <img src="images/S129.jpg" alt="Imagem 129">
-                <img src="images/S130.jpg" alt="Imagem 130">
-                <img src="images/S131.jpg" alt="Imagem 131">
-                <img src="images/S132.jpg" alt="Imagem 132">
-                <img src="images/S133.jpg" alt="Imagem 133">
-                <img src="images/S134.jpg" alt="Imagem 134">
-                <img src="images/S135.jpg" alt="Imagem 135">
-                <img src="images/S136.jpg" alt="Imagem 136">
-                <img src="images/S137.jpg" alt="Imagem 137">
-                <img src="images/S138.jpg" alt="Imagem 138">
-                <img src="images/S139.jpg" alt="Imagem 139">
-                <img src="images/S140.jpg" alt="Imagem 140">
-                <img src="images/S141.jpg" alt="Imagem 141">
-                <img src="images/S142.jpg" alt="Imagem 142">
-                <img src="images/S143.jpg" alt="Imagem 143">
-                <img src="images/S144.jpg" alt="Imagem 144">
-                <img src="images/S145.jpg" alt="Imagem 145">
-                <img src="images/S146.jpg" alt="Imagem 146">
-                <img src="images/S147.jpg" alt="Imagem 147">
-                <img src="images/S148.jpg" alt="Imagem 148">
-                <img src="images/S149.jpg" alt="Imagem 149">
-                <img src="images/S150.jpg" alt="Imagem 150">
-                <img src="images/S151.jpg" alt="Imagem 151">
-                <img src="images/S152.jpg" alt="Imagem 152">
-                <img src="images/S153.jpg" alt="Imagem 153">
-                <img src="images/S154.jpg" alt="Imagem 154">
-                <img src="images/S155.jpg" alt="Imagem 155">
-                <img src="images/S156.jpg" alt="Imagem 156">
-                <img src="images/S157.jpg" alt="Imagem 157">
-                <img src="images/S158.jpg" alt="Imagem 158">
-                <img src="images/S159.jpg" alt="Imagem 159">
-                <img src="images/S160.jpg" alt="Imagem 160">
-                <img src="images/S161.jpg" alt="Imagem 161">
-                <img src="images/S162.jpg" alt="Imagem 162">
-                <img src="images/S163.jpg" alt="Imagem 163">
-                <img src="images/S164.jpg" alt="Imagem 164">
-                <img src="images/S165.jpg" alt="Imagem 165">
-                <img src="images/S166.jpg" alt="Imagem 166">
-                <img src="images/S167.jpg" alt="Imagem 167">
-                <img src="images/S168.jpg" alt="Imagem 168">
-                <img src="images/S169.jpg" alt="Imagem 169">
-                <img src="images/S170.jpg" alt="Imagem 170">
-                <img src="images/S171.jpg" alt="Imagem 171">
-                <img src="images/S172.jpg" alt="Imagem 172">
-                <img src="images/S173.jpg" alt="Imagem 173">
-                <img src="images/S174.jpg" alt="Imagem 174">
-                <img src="images/S175.jpg" alt="Imagem 175">
-                <img src="images/S176.jpg" alt="Imagem 176">
-                <img src="images/S177.jpg" alt="Imagem 177">
-                <img src="images/S178.jpg" alt="Imagem 178">
-                <img src="images/S179.jpg" alt="Imagem 179">
-                <img src="images/S180.jpg" alt="Imagem 180">
-                <img src="images/S181.jpg" alt="Imagem 181">
-                <img src="images/S182.jpg" alt="Imagem 182">
-                <img src="images/S183.jpg" alt="Imagem 183">
-                <img src="images/S184.jpg" alt="Imagem 184">
-                <img src="images/S185.jpg" alt="Imagem 185">
-                <img src="images/S186.jpg" alt="Imagem 186">
-                <img src="images/S187.jpg" alt="Imagem 187">
-                <img src="images/S188.jpg" alt="Imagem 188">
-                <img src="images/S189.jpg" alt="Imagem 189">
-                <img src="images/S190.jpg" alt="Imagem 190">
-                <img src="images/S191.jpg" alt="Imagem 191">
-                <img src="images/S192.jpg" alt="Imagem 192">
-                <img src="images/S193.jpg" alt="Imagem 193">
-                <img src="images/S194.jpg" alt="Imagem 194">
-                <img src="images/S195.jpg" alt="Imagem 195">
-                <img src="images/S196.jpg" alt="Imagem 196">
-                <img src="images/S197.jpg" alt="Imagem 197">
-                <img src="images/S198.jpg" alt="Imagem 198">
-                <img src="images/S199.jpg" alt="Imagem 199">
-                <img src="images/S200.jpg" alt="Imagem 200">
-                <img src="images/S201.jpg" alt="Imagem 201">
-                <img src="images/S202.jpg" alt="Imagem 202">
-                <img src="images/S203.jpg" alt="Imagem 203">
-                <img src="images/S204.jpg" alt="Imagem 204">
-                <img src="images/S205.jpg" alt="Imagem 205">
-                <img src="images/S206.jpg" alt="Imagem 206">
-                <img src="images/S207.jpg" alt="Imagem 207">
-                <img src="images/S208.jpg" alt="Imagem 208">
-                <img src="images/S209.jpg" alt="Imagem 209">
-                <img src="images/S210.jpg" alt="Imagem 210">
-                <img src="images/S211.jpg" alt="Imagem 211">
-                <img src="images/S212.jpg" alt="Imagem 212">
-                <img src="images/S213.jpg" alt="Imagem 213">
-                <img src="images/S214.jpg" alt="Imagem 214">
-                <img src="images/S215.jpg" alt="Imagem 215">
-                <img src="images/S216.jpg" alt="Imagem 216">
-                <img src="images/S217.jpg" alt="Imagem 217">
-                <img src="images/S218.jpg" alt="Imagem 218">
-                <img src="images/S219.jpg" alt="Imagem 219">
-                <img src="images/S220.jpg" alt="Imagem 220">
-                <img src="images/S221.jpg" alt="Imagem 221">
-                <img src="images/S222.jpg" alt="Imagem 222">
-                <img src="images/S223.jpg" alt="Imagem 223">
-                <img src="images/S224.jpg" alt="Imagem 224">
-                <img src="images/S225.jpg" alt="Imagem 225">
-                <img src="images/S226.jpg" alt="Imagem 226">
-                <img src="images/S227.jpg" alt="Imagem 227">
-                <img src="images/S228.jpg" alt="Imagem 228">
-                <img src="images/S229.jpg" alt="Imagem 229">
-                <img src="images/S230.jpg" alt="Imagem 230">
-                <img src="images/S231.jpg" alt="Imagem 231">
-                <img src="images/S232.jpg" alt="Imagem 232">
-                <img src="images/S233.jpg" alt="Imagem 233">
-                <img src="images/S234.jpg" alt="Imagem 234">
-                <img src="images/S235.jpg" alt="Imagem 235">
-                <img src="images/S236.jpg" alt="Imagem 236">
-                <img src="images/S237.jpg" alt="Imagem 237">
-                <img src="images/S238.jpg" alt="Imagem 238">
-                <img src="images/S239.jpg" alt="Imagem 239">
-                <img src="images/S240.jpg" alt="Imagem 240">
-                <img src="images/S241.jpg" alt="Imagem 241">
-                <img src="images/S242.jpg" alt="Imagem 242">
-                <img src="images/S243.jpg" alt="Imagem 243">
-                <img src="images/S244.jpg" alt="Imagem 244">
-                <img src="images/S245.jpg" alt="Imagem 245">
-                <img src="images/S246.jpg" alt="Imagem 246">
-                <img src="images/S247.jpg" alt="Imagem 247">
-                <img src="images/S248.jpg" alt="Imagem 248">
-                <img src="images/S249.jpg" alt="Imagem 249">
-                <img src="images/S250.jpg" alt="Imagem 250">
-                <img src="images/S251.jpg" alt="Imagem 251">
-                <img src="images/S252.jpg" alt="Imagem 252">
-                <img src="images/S253.jpg" alt="Imagem 253">
-                <img src="images/S254.jpg" alt="Imagem 254">
-                <img src="images/S255.jpg" alt="Imagem 255">
-                <img src="images/S256.jpg" alt="Imagem 256">
-                <img src="images/S257.jpg" alt="Imagem 257">
-                <img src="images/S258.jpg" alt="Imagem 258">
-                <img src="images/S259.jpg" alt="Imagem 259">
-                <img src="images/S260.jpg" alt="Imagem 260">
-                <img src="images/S261.jpg" alt="Imagem 261">
-                <img src="images/S262.jpg" alt="Imagem 262">
-                <img src="images/S263.jpg" alt="Imagem 263">
-                <img src="images/S264.jpg" alt="Imagem 264">
-                <img src="images/S265.jpg" alt="Imagem 265">
-                <img src="images/S266.jpg" alt="Imagem 266">
-                <img src="images/S267.jpg" alt="Imagem 267">
-                <img src="images/S268.jpg" alt="Imagem 268">
-                <img src="images/S269.jpg" alt="Imagem 269">
-                <img src="images/S270.jpg" alt="Imagem 270">
-                <img src="images/S271.jpg" alt="Imagem 271">
-                <img src="images/S272.jpg" alt="Imagem 272">
-                <img src="images/S273.jpg" alt="Imagem 273">
-                <img src="images/S274.jpg" alt="Imagem 274">
-                <img src="images/S275.jpg" alt="Imagem 275">
-                <img src="images/S276.jpg" alt="Imagem 276">
-                <img src="images/S277.jpg" alt="Imagem 277">
-                <img src="images/S278.jpg" alt="Imagem 278">
-                <img src="images/S279.jpg" alt="Imagem 279">
-                <img src="images/S280.jpg" alt="Imagem 280">
-                <img src="images/S281.jpg" alt="Imagem 281">
-                <img src="images/S282.jpg" alt="Imagem 282">
-                <img src="images/S283.jpg" alt="Imagem 283">
-                <img src="images/S284.jpg" alt="Imagem 284">
-                <img src="images/S285.jpg" alt="Imagem 285">
-                <img src="images/S286.jpg" alt="Imagem 286">
-                <img src="images/S287.jpg" alt="Imagem 287">
-                <img src="images/S288.jpg" alt="Imagem 288">
-                <img src="images/S289.jpg" alt="Imagem 289">
-                <img src="images/S290.jpg" alt="Imagem 290">
-                <img src="images/S291.jpg" alt="Imagem 291">
-                <img src="images/S292.jpg" alt="Imagem 292">
-                <img src="images/S293.jpg" alt="Imagem 293">
-                <img src="images/S294.jpg" alt="Imagem 294">
-                <img src="images/S295.jpg" alt="Imagem 295">
-                <img src="images/S296.jpg" alt="Imagem 296">
-                <img src="images/S297.jpg" alt="Imagem 297">
-                <img src="images/S298.jpg" alt="Imagem 298">
-                <img src="images/S299.jpg" alt="Imagem 299">
-                <img src="images/S300.jpg" alt="Imagem 300">
-                <img src="images/S301.jpg" alt="Imagem 301">
-                <img src="images/S302.jpg" alt="Imagem 302">
-                <img src="images/S303.jpg" alt="Imagem 303">
-                <img src="images/S304.jpg" alt="Imagem 304">
-                <img src="images/S305.jpg" alt="Imagem 305">
-                <img src="images/S306.jpg" alt="Imagem 306">
-                <img src="images/S307.jpg" alt="Imagem 307">
-                <img src="images/S308.jpg" alt="Imagem 308">
-                <img src="images/S309.jpg" alt="Imagem 309">
-                <img src="images/S310.jpg" alt="Imagem 310">
-                <img src="images/S311.jpg" alt="Imagem 311">
-                <img src="images/S312.jpg" alt="Imagem 312">
-                <img src="images/S313.jpg" alt="Imagem 313">
-                <img src="images/S314.jpg" alt="Imagem 314">
-                <img src="images/S315.jpg" alt="Imagem 315">
-                <img src="images/S316.jpg" alt="Imagem 316">
-                <img src="images/S317.jpg" alt="Imagem 317">
-                <img src="images/S318.jpg" alt="Imagem 318">
-                <img src="images/S319.jpg" alt="Imagem 319">
-                <img src="images/S320.jpg" alt="Imagem 320">
-                <img src="images/S321.jpg" alt="Imagem 321">
-                <img src="images/S322.jpg" alt="Imagem 322">
-                <img src="images/S323.jpg" alt="Imagem 323">
-                <img src="images/S324.jpg" alt="Imagem 324">
-                <img src="images/S325.jpg" alt="Imagem 325">
-                <img src="images/S326.jpg" alt="Imagem 326">
-                <img src="images/S327.jpg" alt="Imagem 327">
-                <img src="images/S328.jpg" alt="Imagem 328">
-                <img src="images/S329.jpg" alt="Imagem 329">
-                <img src="images/S330.jpg" alt="Imagem 330">
-                <img src="images/S331.jpg" alt="Imagem 331">
-                <img src="images/S332.jpg" alt="Imagem 332">
-                <img src="images/S333.jpg" alt="Imagem 333">
-                <img src="images/S334.jpg" alt="Imagem 334">
-                <img src="images/S335.jpg" alt="Imagem 335">
-                <img src="images/S336.jpg" alt="Imagem 336">
-                <img src="images/S337.jpg" alt="Imagem 337">
-                <img src="images/S338.jpg" alt="Imagem 338">
-                <img src="images/S339.jpg" alt="Imagem 339">
-                <img src="images/S340.jpg" alt="Imagem 340">
-                <img src="images/S341.jpg" alt="Imagem 341">
-                <img src="images/S342.jpg" alt="Imagem 342">
-                <img src="images/S343.jpg" alt="Imagem 343">
-                <img src="images/S344.jpg" alt="Imagem 344">
-                <img src="images/S345.jpg" alt="Imagem 345">
-                <img src="images/S346.jpg" alt="Imagem 346">
-                <img src="images/S347.jpg" alt="Imagem 347">
-                <img src="images/S348.jpg" alt="Imagem 348">
-                <img src="images/S349.jpg" alt="Imagem 349">
-                <img src="images/S350.jpg" alt="Imagem 350">
-                <img src="images/S351.jpg" alt="Imagem 351">
-                <img src="images/S352.jpg" alt="Imagem 352">
-                <img src="images/S353.jpg" alt="Imagem 353">
-                <img src="images/S354.jpg" alt="Imagem 354">
-                <img src="images/S355.jpg" alt="Imagem 355">
-                <img src="images/S356.jpg" alt="Imagem 356">
-                <img src="images/S357.jpg" alt="Imagem 357">
-                <img src="images/S358.jpg" alt="Imagem 358">
-                <img src="images/S359.jpg" alt="Imagem 359">
-                <img src="images/S360.jpg" alt="Imagem 360">
-                <img src="images/S361.jpg" alt="Imagem 361">
-                <img src="images/S362.jpg" alt="Imagem 362">
-                <img src="images/S363.jpg" alt="Imagem 363">
-                <img src="images/S364.jpg" alt="Imagem 364">
-                <img src="images/S365.jpg" alt="Imagem 365">
-                <img src="images/S366.jpg" alt="Imagem 366">
-                <img src="images/S367.jpg" alt="Imagem 367">
-                <img src="images/S368.jpg" alt="Imagem 368">
-                <img src="images/S369.jpg" alt="Imagem 369">
-                <img src="images/S370.jpg" alt="Imagem 370">
-                <img src="images/S371.jpg" alt="Imagem 371">
-                <img src="images/S372.jpg" alt="Imagem 372">
-                <img src="images/S373.jpg" alt="Imagem 373">
-                <img src="images/S374.jpg" alt="Imagem 374">
-                <img src="images/S375.jpg" alt="Imagem 375">
-                <img src="images/S376.jpg" alt="Imagem 376">
-                <img src="images/S377.jpg" alt="Imagem 377">
-                <img src="images/S378.jpg" alt="Imagem 378">
-                <img src="images/S379.jpg" alt="Imagem 379">
-                <img src="images/S380.jpg" alt="Imagem 380">
-                <img src="images/S381.jpg" alt="Imagem 381">
-                <img src="images/S382.jpg" alt="Imagem 382">
-                <img src="images/S383.jpg" alt="Imagem 383">
-                <img src="images/S384.jpg" alt="Imagem 384">
-                <img src="images/S385.jpg" alt="Imagem 385">
-                <img src="images/S386.jpg" alt="Imagem 386">
-                <img src="images/S387.jpg" alt="Imagem 387">
-                <img src="images/S388.jpg" alt="Imagem 388">
-                <img src="images/S389.jpg" alt="Imagem 389">
-                <img src="images/S390.jpg" alt="Imagem 390">
-                <img src="images/S391.jpg" alt="Imagem 391">
-                <img src="images/S392.jpg" alt="Imagem 392">
-                <img src="images/S393.jpg" alt="Imagem 393">
-                <img src="images/S394.jpg" alt="Imagem 394">
-                <img src="images/S395.jpg" alt="Imagem 395">
-                <img src="images/S396.jpg" alt="Imagem 396">
-                <img src="images/S397.jpg" alt="Imagem 397">
-                <img src="images/S398.jpg" alt="Imagem 398">
-                <img src="images/S399.jpg" alt="Imagem 399">
-                <img src="images/S400.jpg" alt="Imagem 400">
-                <img src="images/S401.jpg" alt="Imagem 401">
-                <img src="images/S402.jpg" alt="Imagem 402">
-                <img src="images/S403.jpg" alt="Imagem 403">
-                <img src="images/S404.jpg" alt="Imagem 404">
-                <img src="images/S405.jpg" alt="Imagem 405">
-                <img src="images/S406.jpg" alt="Imagem 406">
-                <img src="images/S407.jpg" alt="Imagem 407">
-                <img src="images/S408.jpg" alt="Imagem 408">
-                <img src="images/S409.jpg" alt="Imagem 409">
-                <img src="images/S410.jpg" alt="Imagem 410">
-                <img src="images/S411.jpg" alt="Imagem 411">
-                <img src="images/S412.jpg" alt="Imagem 412">
-                <img src="images/S413.jpg" alt="Imagem 413">
-                <img src="images/S414.jpg" alt="Imagem 414">
-                <img src="images/S415.jpg" alt="Imagem 415">
-                <img src="images/S416.jpg" alt="Imagem 416">
-                <img src="images/S417.jpg" alt="Imagem 417">
-                <img src="images/S418.jpg" alt="Imagem 418">
-                <img src="images/S419.jpg" alt="Imagem 419">
-                <img src="images/S420.jpg" alt="Imagem 420">
-                <img src="images/S421.jpg" alt="Imagem 421">
-                <img src="images/S422.jpg" alt="Imagem 422">
-                <img src="images/S423.jpg" alt="Imagem 423">
-                <img src="images/S424.jpg" alt="Imagem 424">
-                <img src="images/S425.jpg" alt="Imagem 425">
-                <img src="images/S426.jpg" alt="Imagem 426">
-                <img src="images/S427.jpg" alt="Imagem 427">
-                <img src="images/S428.jpg" alt="Imagem 428">
-                <img src="images/S429.jpg" alt="Imagem 429">
-                <img src="images/S430.jpg" alt="Imagem 430">
-                <img src="images/S431.jpg" alt="Imagem 431">
-                <img src="images/S432.jpg" alt="Imagem 432">
-                <img src="images/S433.jpg" alt="Imagem 433">
-                <img src="images/S434.jpg" alt="Imagem 434">
-                <img src="images/S435.jpg" alt="Imagem 435">
-                <img src="images/S436.jpg" alt="Imagem 436">
-                <img src="images/S437.jpg" alt="Imagem 437">
-                <img src="images/S438.jpg" alt="Imagem 438">
-                <img src="images/S439.jpg" alt="Imagem 439">
-                <img src="images/S440.jpg" alt="Imagem 440">
-                <img src="images/S441.jpg" alt="Imagem 441">
-                <img src="images/S442.jpg" alt="Imagem 442">
-                <img src="images/S443.jpg" alt="Imagem 443">
-                <img src="images/S444.jpg" alt="Imagem 444">
-                <img src="images/S445.jpg" alt="Imagem 445">
-                <img src="images/S446.jpg" alt="Imagem 446">
-                <img src="images/S447.jpg" alt="Imagem 447">
-                <img src="images/S448.jpg" alt="Imagem 448">
-                <img src="images/S449.jpg" alt="Imagem 449">
-                <img src="images/S450.jpg" alt="Imagem 450">
-                <img src="images/S451.jpg" alt="Imagem 451">
-                <img src="images/S452.jpg" alt="Imagem 452">
-                <img src="images/S453.jpg" alt="Imagem 453">
-                <img src="images/S454.jpg" alt="Imagem 454">
-                <img src="images/S455.jpg" alt="Imagem 455">
-                <img src="images/S456.jpg" alt="Imagem 456">
-                <img src="images/S457.jpg" alt="Imagem 457">
-                <img src="images/S458.jpg" alt="Imagem 458">
-                <img src="images/S459.jpg" alt="Imagem 459">
-                <img src="images/S460.jpg" alt="Imagem 460">
-                <img src="images/S461.jpg" alt="Imagem 461">
-                <img src="images/S462.jpg" alt="Imagem 462">
-                <img src="images/S463.jpg" alt="Imagem 463">
-                <img src="images/S464.jpg" alt="Imagem 464">
-                <img src="images/S465.jpg" alt="Imagem 465">
-                <img src="images/S466.jpg" alt="Imagem 466">
-                <img src="images/S467.jpg" alt="Imagem 467">
-                <img src="images/S468.jpg" alt="Imagem 468">
-                <img src="images/S469.jpg" alt="Imagem 469">
-                <img src="images/S470.jpg" alt="Imagem 470">
-                <img src="images/S471.jpg" alt="Imagem 471">
-                <img src="images/S472.jpg" alt="Imagem 472">
-                <img src="images/S473.jpg" alt="Imagem 473">
-                <img src="images/S474.jpg" alt="Imagem 474">
-                <img src="images/S475.jpg" alt="Imagem 475">
-                <img src="images/S476.jpg" alt="Imagem 476">
-                <img src="images/S477.jpg" alt="Imagem 477">
-                <img src="images/S478.jpg" alt="Imagem 478">
-                <img src="images/S479.jpg" alt="Imagem 479">
-                <img src="images/S480.jpg" alt="Imagem 480">
-                <img src="images/S481.jpg" alt="Imagem 481">
-                <img src="images/S482.jpg" alt="Imagem 482">
-                <img src="images/S483.jpg" alt="Imagem 483">
-                <img src="images/S484.jpg" alt="Imagem 484">
-                <img src="images/S485.jpg" alt="Imagem 485">
-                <img src="images/S486.jpg" alt="Imagem 486">
-                <img src="images/S487.jpg" alt="Imagem 487">
-                <img src="images/S488.jpg" alt="Imagem 488">
-                <img src="images/S489.jpg" alt="Imagem 489">
-                <img src="images/S490.jpg" alt="Imagem 490">
-                <img src="images/S491.jpg" alt="Imagem 491">
-                <img src="images/S492.jpg" alt="Imagem 492">
-                <img src="images/S493.jpg" alt="Imagem 493">
-                <img src="images/S494.jpg" alt="Imagem 494">
-                <img src="images/S495.jpg" alt="Imagem 495">
-                <img src="images/S496.jpg" alt="Imagem 496">
-                <img src="images/S497.jpg" alt="Imagem 497">
-                <img src="images/S498.jpg" alt="Imagem 498">
-                <img src="images/S499.jpg" alt="Imagem 499">
-                <img src="images/S500.jpg" alt="Imagem 500">
+        <div class="categoria-group active-group" id="grupo-bolo-tradicional">
+            <img src="BOLTRA.png" alt="Bolos Tradicionais" id="img-bolo-tradicional">
+            <table id="tabela-bolo-tradicional">
+                <caption>Bolos Tradicionais</caption>
+                <tr>
+                    <th>ITEM</th>
+                    <th>tamanho</th>
+                    <th>UNID.</th>
+                    <th>QUANTIDADE</th>
+                </tr>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="categoria-group" id="grupo-bolo-especial">
+             <img src="BOLESP.png" alt="Bolos Especiais" id="img-bolo-especial">
+            <table id="tabela-bolo-especial">
+                <caption>Bolos Especiais</caption>
+                <tr>
+                    <th>ITEM</th>
+                    <th>tamanho</th>
+                    <th>UNID.</th>
+                    <th>QUANTIDADE</th>
+                </tr>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="categoria-group" id="grupo-doces">
+            <img src="DOCS.png" alt="Doces" id="img-doces">
+            <table id="tabela-doces">
+                <caption>Doces</caption>
+                <tr>
+                    <th>ITEM</th>
+                    <th>Preço Unid.</th>
+                    <th>UNID.</th>
+                    <th>QUANTIDADE</th>
+                </tr>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="categoria-group" id="grupo-cookies">
+            <img src="cookies.png" alt="Cookies" id="img-cookies">
+            <div id="erro-cookies" class="erro-categoria"></div>
+            <table id="tabela-cookies">
+                <caption>Cookies</caption>
+                <tr>
+                    <th>ITEM</th>
+                    <th>UNID.</th>
+                    <th>QUANTIDADE</th>
+                </tr>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="categoria-group" id="grupo-salfri">
+             <img src="salfri.png" alt="Salgados Fritos" id="img-salfri">
+            <table id="tabela-salfri">
+                <caption>Salgados Fritos</caption>
+                <tr>
+                    <th>ITEM</th>
+                    <th>Preço Unid.</th>
+                    <th>UNID.</th>
+                    <th>QUANTIDADE</th>
+                </tr>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="categoria-group" id="grupo-salgado-forno">
+            <img src="SALFOR.png" alt="Salgados Forno" id="img-salgado-forno">
+            <table id="tabela-salgado-forno">
+                <caption>Salgados Forno</caption>
+                <tr>
+                    <th>ITEM</th>
+                    <th>Preço Unid.</th>
+                    <th>UNID.</th>
+                    <th>QUANTIDADE</th>
+                </tr>
+                <tbody></tby>
+            </table>
+        </div>
+
+        <div class="categoria-group" id="grupo-salgado-vegetariano">
+             <img src="SALVEG.png" alt="Salgados Vegetarianos" id="img-salgado-vegetariano">
+            <table id="tabela-salgado-vegetariano">
+                <caption>Salgados Vegetarianos</caption>
+                <tr>
+                    <th>ITEM</th>
+                    <th>Preço Unid.</th>
+                    <th>UNID.</th>
+                    <th>QUANTIDADE</th>
+                </tr>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="categoria-group" id="grupo-prato-salgado">
+            <img src="PRASAL.png" alt="Pratos Salgados" id="img-prato-salgado">
+            <table id="tabela-prato-salgado">
+                <caption>Pratos Salgados</caption>
+                <tr>
+                    <th>ITEM</th>
+                    <th>tamanho</th>
+                    <th>UNID.</th>
+                    <th>QUANTIDADE</th>
+                </tr>
+                <tbody></tby>
+            </table>
+        </div>
+
+
+        <button id="botao-voltar" onclick="window.location.replace('https://favucozinha.github.io/Inicio/')">Voltar</button>
+
+        <div id="popup-resumo" class="popup">
+            <div class="popup-conteudo">
+                <span class="fechar" onclick="fecharResumoPopup()">&times;</span>
+                <h2>SEU ORÇAMENTO</h2>
+
+                <div id="popup-resumo-itens" class="resumo-itens"></div>
+
+                <div id="desconto-container">
+                    <strong>DESCONTO (Simulação)</strong>
+                    <div id="desconto-input-group">
+                        <span style="font-size: 18px; font-weight: bold;">R$</span>
+                        <input type="text" id="desconto-input" placeholder="0,00" value="0,00" oninput="formatarEAtualizarDesconto(this)">
+                        <button id="apply-desconto-btn" onclick="aplicarDescontoManual()">APLICAR</button>
+                    </div>
+                    <div id="desconto-message" class="cupom-message"></div>
+                </div>
+                <div id="popup-resumo-total" class="resumo-total"></div>
+
+                <div id="fazer-pedido-button-container">
+                </div>
+                <button onclick="fecharResumoPopup()">ADICIONAR ITENS</button>
             </div>
-        </section>
-    </main>
+        </div>
 
-    <!-- Rodapé -->
-    <footer>
-        <img src="images/roda.png" alt="Imagem de rodapé" class="footer-image">
-    </footer>
+        <div id="popup-pedido" class="popup">
+            <div class="popup-conteudo">
+                <span class="fechar" onclick="fecharPopup()">&times;</span>
+                <h2>INFORMAÇÕES DO PEDIDO</h2>
+                <form id="form-pedido">
+                    <label for="nome">NOME DO CLIENTE:</label>
+                    <input type="text" id="nome" name="nome" placeholder="Nome Completo do Cliente" required>
+
+                    <label for="data">DATA DA ENTREGA/RETIRADA:</label>
+                    <input type="date" id="data" name="data" required>
+
+                    <label for="horario">HORÁRIO DA ENTREGA/RETIRADA:</label>
+                    <input type="time" id="horario" name="horario" required>
+
+                    <label for="pagamento">FORMA DE PAGAMENTO:</label>
+                    <select id="pagamento" name="pagamento" required>
+                        <option value="">Selecione a Forma</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Cartão">Cartão</option>
+                        <option value="Pix">Pix</option>
+                    </select>
+
+                    <button type="button" onclick="confirmarPedido()">ENVIAR ORÇAMENTO VIA WHATSAPP</button>
+                    <button type="button" onclick="editarPedido()">EDITAR ORÇAMENTO</button>
+                    <button type="button" onclick="fecharPopup()">ADICIONAR MAIS ITENS</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="fixed-summary">
+            <div class="summary-content">
+                <div id="summary-text">
+                    <div id="summary-total">R$ 0,00</div>
+                    <span>Total Simulado</span>
+                    <span id="summary-item-count"> / 0 itens</span>
+                </div>
+                <button id="summary-button" onclick="abrirResumoPopup()">Ver Orçamento</button>
+            </div>
+        </div>
+
+        <footer>
+            <img src="roda2.png" alt="Rodapé">
+        </footer>
+    </div>
+
+    <script>
+        // Variável global para armazenar o DESCONTO em Reais (R$)
+        let descontoAplicado = 0;
+
+        // WhatsApp de destino para o resumo
+        const WHATSAPP_NUMBER = '558195256641';
+
+        // -----------------------------------------------------
+        // DADOS DOS PRODUTOS (MINIMOS DEFINIDOS COMO 1 OU 0)
+        // -----------------------------------------------------
+        const generateId = (nome, tamanho) => {
+            let base = nome.toLowerCase().replace(/[^a-z0-9]/g, '-');
+            if (tamanho) {
+                base += '-' + tamanho.toLowerCase().replace(/[^a-z0-9]/g, '');
+            }
+            return base.replace(/-+/g, '-').trim('-');
+        };
+
+        const addGroupKeys = (itens) => {
+            return itens.map(item => ({
+                ...item,
+                groupKey: item.tamanho ? item.nome : item.id
+            }));
+        };
+
+        const itensBoloTradicional = addGroupKeys([
+            { nome: "Bolo de Bem-Casado", tamanho: "P (1.5 KG)", preco: 100.00, min: 1, descricaoResumo: "Bolo de Bem-Casado - P (1.5 KG)", descricao: ""},
+            { nome: "Bolo de Bem-Casado", tamanho: "M (2.5 KG)", preco: 160.00, min: 1, descricaoResumo: "Bolo de Bem-Casado - M (2.5 KG)", descricao: ""},
+            { nome: "Bolo de Bem-Casado", tamanho: "G (3.5 KG)", preco: 220.00, min: 1, descricaoResumo: "Bolo de Bem-Casado - G (3.5 KG)", descricao: ""},
+            { nome: "Bolo de Doce de Leite", tamanho: "P (1.5 KG)", preco: 90.00, min: 1, descricaoResumo: "Bolo de Doce de Leite e Crocante de Amendoin - P (1.5 KG)", descricao: "Com Crocante de Amendoin"},
+            { nome: "Bolo de Doce de Leite", tamanho: "M (2.5 KG)", preco: 150.00, min: 1, descricaoResumo: "Bolo de Doce de Leite e Crocante de Amendoin - M (2.5 KG)", descricao: "Com Crocante de Amendoin"},
+            { nome: "Bolo de Doce de Leite", tamanho: "G (3.5 KG)", preco: 210.00, min: 1, descricaoResumo: "Bolo de Doce de Leite e Crocante de Amendoin - G (3.5 KG)", descricao: "Com Crocante de Amendoin"},
+            { nome: "Bolo de Chocolate", tamanho: "P (1.5 KG)", preco: 90.00, min: 1, descricaoResumo: "Bolo de Chocolate 50% Cacau - P (1.5 KG)", descricao: "Com chocolate 50% cacau"},
+            { nome: "Bolo de Chocolate", tamanho: "M (2.5 KG)", preco: 150.00, min: 1, descricaoResumo: "Bolo de Chocolate 50% Cacau - M (2.5 KG)", descricao: "Com chocolate 50% cacau"},
+            { nome: "Bolo de Chocolate", tamanho: "G (3.5 KG)", preco: 210.00, min: 1, descricaoResumo: "Bolo de Chocolate 50% Cacau - G (3.5 KG)", descricao: "Com chocolate 50% cacau"},
+            { nome: "Bolo de Limão", tamanho: "P (1.5 KG)", preco: 90.00, min: 1, descricaoResumo: "Bolo de Limão e Chocolate Branco - P (1.5 KG)", descricao: "Com Cholocate Branco"},
+            { nome: "Bolo de Limão", tamanho: "M (2.5 KG)", preco: 150.00, min: 1, descricaoResumo: "Bolo de Limão e Chocolate Branco - M (2.5 KG)", descricao: "Com Cholocate Branco"},
+            { nome: "Bolo de Limão", tamanho: "G (3.5 KG)", preco: 210.00, min: 1, descricaoResumo: "Bolo de Limão e Chocolate Branco - G (3.5 KG)", descricao: "Com Cholocate Branco"},
+            { nome: "Bolo de Maracujá", tamanho: "P (1.5 KG)", preco: 90.00, min: 1, descricaoResumo: "Bolo de Maracujá e Chocolate Branco - P (1.5 KG)", descricao: "Com Cholocate Branco"},
+            { nome: "Bolo de Maracujá", tamanho: "M (2.5 KG)", preco: 150.00, min: 1, descricaoResumo: "Bolo de Maracujá e Chocolate Branco - M (2.5 KG)", descricao: "Com Cholocate Branco"},
+            { nome: "Bolo de Maracujá", tamanho: "G (3.5 KG)", preco: 210.00, min: 1, descricaoResumo: "Bolo de Maracujá e Chocolate Branco - G (3.5 KG)", descricao: "Com Cholocate Branco"},
+        ]).map(item => ({...item, id: generateId(item.nome, item.tamanho)}));
+
+        const itensBoloEspecial = addGroupKeys([
+            { nome: "Bolo de Ameixa", tamanho: "P (1.5 KG)", preco: 110.00, min: 1, descricaoResumo: "Bolo de Ameixa e Chocolate Branco - P (1.5 KG)", descricao: "Com Chocolate Branco"},
+            { nome: "Bolo de Ameixa", tamanho: "M (2.5 KG)", preco: 180.00, min: 1, descricaoResumo: "Bolo de Ameixa e Chocolate Branco - M (2.5 KG)", descricao: "Com Chocolate Branco"},
+            { nome: "Bolo de Ameixa", tamanho: "G (3.5 KG)", preco: 250.00, min: 1, descricaoResumo: "Bolo de Ameixa e Chocolate Branco - G (3.5 KG)", descricao: "Com Chocolate Branco"},
+            { nome: "Bolo de Café e Doce de Leite", tamanho: "P (1.5 KG)", preco: 110.00, min: 1, descricaoResumo: "Bolo de Café Com Doce de Leite e Chocolate Amargo - P (1.5 KG)", descricao:"Com Chocolate Amargo"},
+            { nome: "Bolo de Café e Doce de Leite", tamanho: "M (2.5 KG)", preco: 180.00, min: 1, descricaoResumo: "Bolo de Café Com Doce de Leite e Chocolate Amargo - M (2.5 KG)", descricao:"Com Chocolate Amargo"},
+            { nome: "Bolo de Café e Doce de Leite", tamanho: "G (3.5 KG)", preco: 250.00, min: 1, descricaoResumo: "Bolo de Café Com Doce de Leite e Chocolate Amargo - G (3.5 KG)", descricao:"Com Chocolate Amargo"},
+            { nome: "Bolo de Chocolate 50%", tamanho: "P (1.5 KG)", preco: 110.00, min: 1, descricaoResumo: "Bolo de Chocolate 50% com Morangos - P (1.5 KG)", descricao:"Com Morangos"},
+            { nome: "Bolo de Chocolate 50%", tamanho: "M (2.5 KG)", preco: 175.00, min: 1, descricaoResumo: "Bolo de Chocolate 50% com Morangos - M (2.5 KG)", descricao:"Com Morangos"},
+            { nome: "Bolo de Chocolate 50%", tamanho: "G (3.5 KG)", preco: 245.00, min: 1, descricaoResumo: "Bolo de Chocolate 50% com Morangos - G (3.5 KG)", descricao:"Com Morangos"},
+            { nome: "Bolo de Delicia de Abacaxi", tamanho: "P (1.5 KG)", preco: 105.00, min: 1, descricaoResumo: "Bolo de Delicia de Abacaxi - P (1.5 KG)", descricao: ""},
+            { nome: "Bolo de Delicia de Abacaxi", tamanho: "M (2.5 KG)", preco: 175.00, min: 1, descricaoResumo: "Bolo de Delicia de Abacaxi - M (2.5 KG)", descricao: ""},
+            { nome: "Bolo de Delicia de Abacaxi", tamanho: "G (3.5 KG)", preco: 245.00, min: 1, descricaoResumo: "Bolo de Delicia de Abacaxi - G (3.5 KG)", descricao: ""},
+            { nome: "Bolo de Morango", tamanho: "P (1.5 KG)", preco: 110.00, min: 1, descricaoResumo: "Bolo de Morango com Brigadeiro Branco e Chantinhinho - P (1.5 KG)", descricao: "Com Recheio de Brigadeiro Branco e Cobertura de Chantininho"},
+            { nome: "Bolo de Morango", tamanho: "M (2.5 KG)", preco: 175.00, min: 1, descricaoResumo: "Bolo de Morango com Brigadeiro Branco e Chantinhinho - M (2.5 KG)", descricao: "Com Recheio de Brigadeiro Branco e Cobertura de Chantininho"},
+            { nome: "Bolo de Morango", tamanho: "G (3.5 KG)", preco: 245.00, min: 1, descricaoResumo: "Bolo de Morango com Brigadeiro Branco e Chantinhinho - G (3.5 KG)", descricao: "Com Recheio de Brigadeiro Branco e Cobertura de Chantininho"},
+            { nome: "Bolo de Ninho trufado", tamanho: "P (1.5 KG)", preco: 110.00, min: 1, descricaoResumo: "Bolo de Ninho trufado - P (1.5 KG)", descricao: "Com chocolate Branco"},
+            { nome: "Bolo de Ninho trufado", tamanho: "M (2.5 KG)", preco: 175.00, min: 1, descricaoResumo: "Bolo de Ninho trufado - M (2.5 KG)", descricao: "Com chocolate Branco"},
+            { nome: "Bolo de Ninho trufado", tamanho: "G (3.5 KG)", preco: 245.00, min: 1, descricaoResumo: "Bolo de Ninho trufado - G (3.5 KG)", descricao: "Com chocolate Branco"},
+            { nome: "Bolo Prestígio", tamanho: "P (1.5 KG)", preco: 105.00, min: 1, descricaoResumo: "Bolo Prestígio - P (1.5 KG)", descricao: ""},
+            { nome: "Bolo Prestígio", tamanho: "M (2.5 KG)", preco: 175.00, min: 1, descricaoResumo: "Bolo Prestígio - M (2.5 KG)", descricao: ""},
+            { nome: "Bolo Prestígio", tamanho: "G (3.5 KG)", preco: 245.00, min: 1, descricaoResumo: "Bolo Prestígio - G (3.5 KG)", descricao: ""},
+            { nome: "Bolo Red velvet", tamanho: "P (1.5 KG)", preco: 105.00, min: 1, descricaoResumo: "Bolo Red velvet - P (1.5 KG)", descricao: ""},
+            { nome: "Bolo Red velvet", tamanho: "M (2.5 KG)", preco: 175.00, min: 1, descricaoResumo: "Bolo Red velvet - M (2.5 KG)", descricao: ""},
+            { nome: "Bolo Red velvet", tamanho: "G (3.5 KG)", preco: 245.00, min: 1, descricaoResumo: "Bolo Red Velvet - G (3.5 KG)", descricao: ""},
+        ]).map(item => ({...item, id: generateId(item.nome, item.tamanho)}));
+
+        const itensDoces = addGroupKeys([
+            { nome: "Beijinho", min: 1, preco: 1.20, descricaoResumo: "Beijinho", descricao: "" },
+            { nome: "Bem-casado", min: 1, preco: 1.20, descricaoResumo: "Bem-casado", descricao: "" },
+            { nome: "Brigadeiro", min: 1, preco: 1.20, descricaoResumo: "Brigadeiro", descricao: "" },
+            { nome: "Mini Tortilete", min: 1, preco: 1.30, descricaoResumo: "Mini Tortilete", descricao: "" },
+            { nome: "Moranguinho", min: 1, preco: 1.20, descricaoResumo: "Moranguinho", descricao: "" },
+            { nome: "Ouriço", min: 1, preco: 1.30, descricaoResumo: "Ouriço", descricao: "" },
+            { nome: "Queijadinha", min: 1, preco: 1.30, descricaoResumo: "Queijadinha", descricao: "" },
+            { nome: "Surpresa de uva", min: 1, preco: 1.30, descricaoResumo: "Surpresa de uva", descricao: "" },
+        ]).map(item => ({...item, id: generateId(item.nome)}));
+
+        const itensCookies = addGroupKeys([
+            { nome: "Cookie Tradicional", min: 1, preco: 12.00, descricaoResumo: "Cookie Tradicional", descricao: "Massa de baunilha com pedaços de chocolate meio amargo" },
+            { nome: "Cookie Red Velvet", min: 1, preco: 12.00, descricaoResumo: "Cookie Red Velvet", descricao: "Massa de baunilha com toque de cream cheese, cacau vermelho e pedaços de chocolate branco" },
+            { nome: "Cookie Black", min: 1, preco: 12.00, descricaoResumo: "Cookie Black", descricao: "Massa feita com cacau 100% e pedaços de chocolate meio amargo" },
+            { nome: "Cookie Romeu e Julieta", min: 1, preco: 12.00, descricaoResumo: "Cookie Romeu e Julieta", descricao: "Massa de baunilha com pedacinhos de queijo, recheado com cream cheese e goiabada" },
+        ]).map(item => ({...item, id: generateId(item.nome)}));
+
+        const itensSalgadoFrito = addGroupKeys([
+            { nome: "Bolinho de Bacalhau", min: 1, preco: 1.30, descricaoResumo: "Bolinho de Bacalhau", descricao: "" },
+            { nome: "Bolinho de Calabresa", min: 1, preco: 1.00, descricaoResumo: "Bolinho de Calabresa", descricao: "" },
+            { nome: "Bolinho de Charque", min: 1, preco: 1.20, descricaoResumo: "Bolinho de Charque", descricao: "" },
+            { nome: "Coxinha de Frango", min: 1, preco: 1.00, descricaoResumo: "Coxinha de Frango", descricao: "" },
+            { nome: "Croquete Misto", min: 1, preco: 1.00, descricaoResumo: "Croquere Misto", descricao: "De Presunto Com Queijo" },
+            { nome: "Camarão Empanado", min: 1, preco: 1.50, descricaoResumo: "Camarão Empanado", descricao: "" },
+            { nome: "Mini Quibe", min: 1, preco: 1.10, descricaoResumo: "Mini Quibe de Carne C/ Queijo", descricao: "De Carne Com Queijo" },
+            { nome: "Pastel de Festa", min: 1, preco: 1.30, descricaoResumo: "Pastel de Festa", descricao: "" },
+        ]).map(item => ({...item, id: generateId(item.nome)}));
+
+        const itensSalgadoForno = addGroupKeys([
+            { nome: "Canudinho de Frango", min: 1, preco: 1.50, descricaoResumo: "Canudinho de Frango", descricao: "Massa Caseira Assada no Forno" },
+            { nome: "Empadinha de Bacalhau", min: 1, preco: 1.30, descricaoResumo: "Empadinha de Bacalhau", descricao: "" },
+            { nome: "Empadinha de Camarão", min: 1, preco: 1.30, descricaoResumo: "Empadinha de Camarão", descricao: "" },
+            { nome: "Empadinha de Carne", min: 1, preco: 1.00, descricaoResumo: "Empadinha de Carne", descricao: "" },
+            { nome: "Empadinha de Frango", min: 1, preco: 1.00, descricaoResumo: "Empadinha de Frango", descricao: "" },
+            { nome: "Mini Folhado de Carne", min: 1, preco: 2.20, descricaoResumo: "Mini Folhado de Carne", descricao: "" },
+            { nome: "Mini Folhado de Frango", min: 1, preco: 2.20, descricaoResumo: "Mini Folhado de Frango", descricao: "" },
+            { nome: "Mini Folhado de Queijo", min: 1, preco: 2.20, descricaoResumo: "Mini Folhado de Queijo", descricao: "" },
+            { nome: "Mini Folhado de Pizza", min: 1, preco: 2.20, descricaoResumo: "Mini Folhado de Pizza", descricao: "" },
+            { nome: "Mini Enroladinho", min: 1, preco: 1.00, descricaoResumo: "Mini Enroladinho de salsicha", descricao: "Com Salsicha" },
+            { nome: "Pastel de Forno de Bacalhau", min: 1, preco: 1.30, descricaoResumo: "Pastel de Forno de Bacalhau", descricao: "" },
+            { nome: "Pastel de Forno de Camarão", min: 1, preco: 1.40, descricaoResumo: "Pastel de Forno de Camarão", descricao: "" },
+            { nome: "Pastel de Forno de Carne", min: 1, preco: 1.00, descricaoResumo: "Pastel de Forno de Carne", descricao: "" },
+            { nome: "Pastel de Forno de Frango", min: 1, preco: 1.00, descricaoResumo: "Pastel de Forno de Frango", descricao: "" },
+            { nome: "Pastel de Forno de Queijo", min: 1, preco: 1.00, descricaoResumo: "Pastel de Forno de Queijo", descricao: "" },
+            { nome: "Pastel de Forno de Pizza", min: 1, preco: 1.00, descricaoResumo: "Pastel de Forno de Pizza", descricao: "" },
+        ]).map(item => ({...item, id: generateId(item.nome)}));
+
+        const itensSalgadoVegetariano = addGroupKeys([
+            { nome: "Canudinho de Soja", min: 1, preco: 1.50, descricaoResumo: "Canudinho de Soja", descricao: "Massa Caseira Assada no Forno" },
+            { nome: "Coxinha de Soja", min: 1, preco: 1.00, descricaoResumo: "Coxinha de SOJA", descricao: "" },
+            { nome: "Coxinha de Caju *", min: 1, preco: 1.20, descricaoResumo: "Coxinha de CAJU", descricao: "* CONSULTAR DISPONIBILIDADE *" },
+            { nome: "Empadinha de Creme de Aborbinha", min: 1, preco: 1.00, descricaoResumo: "Empadinha de Aborbinha Com Queijo", descricao: "Com Queijo" },
+            { nome: "Empadinha de Falso Camarão", min: 1, preco: 1.00, descricaoResumo: "Empadinha de Falso Camarão", descricao: "A Base de Milho e Leite de Coco" },
+            { nome: "Pastel de Festa Vegetariano", min: 1, preco: 1.30, descricaoResumo: "Pastel de Festa de SOJA", descricao: "De Soja" },
+            { nome: "Pastel de Forno Creme de Abobrinha", min: 1, preco: 1.00, descricaoResumo: "Pastel de Forno Abobrinha C/ Queijo", descricao: "Com Queijo" },
+            { nome: "Pastel de Forno Caju *", min: 1, preco: 1.30, descricaoResumo: "Pastel de Forno Caju", descricao: "* CONSULTAR DISPONIBILIDADE *" },
+        ]).map(item => ({...item, id: generateId(item.nome)}));
+
+        const itensPratoSalgado = addGroupKeys([
+            { nome: "Empadão de Bacalhau", tamanho: "P (1 KG)", preco: 120.00, min: 1, descricaoResumo: "Empadão de Bacalhau - P (1 KG)", descricao: ""},
+            { nome: "Empadão de Bacalhau", tamanho: "M (2 KG)", preco: 220.00, min: 1, descricaoResumo: "Empadão de Bacalhau - M (2 KG)", descricao: ""},
+            { nome: "Empadão de Bacalhau", tamanho: "G (3 KG)", preco: 340.00, min: 1, descricaoResumo: "Empadão de Bacalhau - G (3 KG)", descricao: ""},
+            { nome: "Empadão de Carne", tamanho: "P (1 KG)", preco: 70.00, min: 1, descricaoResumo: "Empadão de Carne - P (1 KG)", descricao: ""},
+            { nome: "Empadão de Carne", tamanho: "M (2 KG)", preco: 140.00, min: 1, descricaoResumo: "Empadão de Carne - M (2 KG)", descricao: ""},
+            { nome: "Empadão de Carne", tamanho: "G (3 KG)", preco: 210.00, min: 1, descricaoResumo: "Empadão de Carne - G (3 KG)", descricao: ""},
+            { nome: "Empadão de Camarão", tamanho: "P (1 KG)", preco: 120.00, min: 1, descricaoResumo: "Empadão de Camarão - P (1 KG)", descricao: ""},
+            { nome: "Empadão de Camarão", tamanho: "M (2 KG)", preco: 220.00, min: 1, descricaoResumo: "Empadão de Camarão - M (2 KG)", descricao: ""},
+            { nome: "Empadão de Camarão", tamanho: "G (3 KG)", preco: 340.00, min: 1, descricaoResumo: "Empadão de Camarão - G (3 KG)", descricao: ""},
+            { nome: "Empadão de Frango", tamanho: "P (1 KG)", preco: 70.00, min: 1, descricaoResumo: "Empadão de Frango - P (1 KG)", descricao: ""},
+            { nome: "Empadão de Frango", tamanho: "M (2 KG)", preco: 140.00, min: 1, descricaoResumo: "Empadão de Frango - M (2 KG)", descricao: ""},
+            { nome: "Empadão de Frango", tamanho: "G (3 KG)", preco: 210.00, min: 1, descricaoResumo: "Empadão de Frango - G (3 KG)", descricao: ""},
+            { nome: "Fricassê de Frango", tamanho: "P (1 KG)", preco: 80.00, min: 1, descricaoResumo: "Fricassê de Frango - P (1 KG)", descricao: ""},
+            { nome: "Fricassê de Frango", tamanho: "M (2 KG)", preco: 160.00, min: 1, descricaoResumo: "Fricassê de Frango - M (2 KG)", descricao: ""},
+            { nome: "Fricassê de Frango", tamanho: "G (3 KG)", preco: 240.00, min: 1, descricaoResumo: "Fricassê de Frango - G (3 KG)", descricao: ""},
+            { nome: "Quiche de Camarão", tamanho: "P (1 KG)", preco: 120.00, min: 1, descricaoResumo: "Quiche de Camarão - P (1 KG)", descricao: ""},
+            { nome: "Quiche de Camarão", tamanho: "M (2 KG)", preco: 240.00, min: 1, descricaoResumo: "Quiche de Camarão - M (2 KG)", descricao: ""},
+            { nome: "Quiche de Camarão", tamanho: "G (3 KG)", preco: 360.00, min: 1, descricaoResumo: "Quiche de Camarão - G (3 KG)", descricao: ""},
+            { nome: "Quiche de Frango", tamanho: "P (1 KG)", preco: 90.00, min: 1, descricaoResumo: "Quiche de Frango - P (1 KG)", descricao: "Com Alho Poró"},
+            { nome: "Quiche de Frango", tamanho: "M (2 KG)", preco: 180.00, min: 1, descricaoResumo: "Quiche de Frango - M (2 KG)", descricao: "Com Alho Poró"},
+            { nome: "Quiche de Frango", tamanho: "G (3 KG)", preco: 260.00, min: 1, descricaoResumo: "Quiche de Frango - G (3 KG)", descricao: "Com Alho Poró"},
+            { nome: "Rocambole de Bacalhau", tamanho: "P (1 KG)", preco: 120.00, min: 1, descricaoResumo: "Rocambole de Bacalhau - P (1 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Bacalhau", tamanho: "M (2 KG)", preco: 240.00, min: 1, descricaoResumo: "Rocambole de Bacalhau - M (2 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Bacalhau", tamanho: "G (3 KG)", preco: 360.00, min: 1, descricaoResumo: "Rocambole de Bacalhau - G (3 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Camarão", tamanho: "P (1 KG)", preco: 120.00, min: 1, descricaoResumo: "Rocambole de Camarão - P (1 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Camarão", tamanho: "M (2 KG)", preco: 240.00, min: 1, descricaoResumo: "Rocambole de Camarão - M (2 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Camarão", tamanho: "G (3 KG)", preco: 365.00, min: 1, descricaoResumo: "Rocambole de Camarão - G (3 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Carne", tamanho: "P (1 KG)", preco: 70.00, min: 1, descricaoResumo: "Rocambole de Carne - P (1 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Carne", tamanho: "M (2 KG)", preco: 140.00, min: 1, descricaoResumo: "Rocambole de Carne - M (2 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Carne", tamanho: "G (3 KG)", preco: 210.00, min: 1, descricaoResumo: "Rocambole de Carne - G (3 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Frango", tamanho: "P (1 KG)", preco: 70.00, min: 1, descricaoResumo: "Rocambole de Frango - P (1.5 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Frango", tamanho: "M (2 KG)", preco: 140.00, min: 1, descricaoResumo: "Rocambole de Frango - M (2 KG)", descricao: "Massa de Batata"},
+            { nome: "Rocambole de Frango", tamanho: "G (3 KG)", preco: 210.00, min: 1, descricaoResumo: "Rocambole de Frango - G (3 KG)", descricao: "Massa de Batata"},
+            { nome: "Torta Salgada de Bacalhau", tamanho: "P (1 KG)", preco: 120.00, min: 1, descricaoResumo: "Torta Salgada de Bacalhau - P (1 KG)", descricao: ""},
+            { nome: "Torta Salgada de Bacalhau", tamanho: "M (2 KG)", preco: 240.00, min: 1, descricaoResumo: "Torta Salgada de Bacalhau - M (2 KG)", descricao: ""},
+            { nome: "Torta Salgada de Bacalhau", tamanho: "G (3 KG)", preco: 360.00, min: 1, descricaoResumo: "Torta Salgada de Bacalhau - G (3 KG)", descricao: ""},
+            { nome: "Torta Salgada de Carne", tamanho: "P (1 KG)", preco: 70.00, min: 1, descricaoResumo: "Torta Salgada de Carne - P (1 KG)", descricao: ""},
+            { nome: "Torta Salgada de Carne", tamanho: "M (2 KG)", preco: 140.00, min: 1, descricaoResumo: "Torta Salgada de Carne - M (2 KG)", descricao: ""},
+            { nome: "Torta Salgada de Carne", tamanho: "G (3 KG)", preco: 210.00, min: 1, descricaoResumo: "Torta Salgada de Carne - G (3 KG)", descricao: ""},
+            { nome: "Torta Salgada de Camarão", tamanho: "P (1 KG)", preco: 120.00, min: 1, descricaoResumo: "Torta Salgada de Camarão - P (1 KG)", descricao: ""},
+            { nome: "Torta Salgada de Camarão", tamanho: "M (2 KG)", preco: 240.00, min: 1, descricaoResumo: "Torta Salgada de Camarão - M (2 KG)", descricao: ""},
+            { nome: "Torta Salgada de Camarão", tamanho: "G (3 KG)", preco: 360.00, min: 1, descricaoResumo: "Torta Salgada de Camarão - G (3 KG)", descricao: ""},
+            { nome: "Torta Salgada de Frango", tamanho: "P (1 KG)", preco: 70.00, min: 1, descricaoResumo: "Torta Salgada de Frango - P (1 KG)", descricao: ""},
+            { nome: "Torta Salgada de Frango", tamanho: "M (2 KG)", preco: 140.00, min: 1, descricaoResumo: "Torta Salgada de Frango - M (2 KG)", descricao: ""},
+            { nome: "Torta Salgada de Frango", tamanho: "G (3 KG)", preco: 210.00, min: 1, descricaoResumo: "Torta Salgada de Frango - G (3 KG)", descricao: ""},
+        ]).map(item => ({...item, id: generateId(item.nome, item.tamanho)}));
+
+
+        const gruposItens = {
+            "tabela-bolo-tradicional": { itens: itensBoloTradicional, nomeGrupo: "Bolos Tradicionais", img: "img-bolo-tradicional", minTotal: 0 },
+            "tabela-bolo-especial": { itens: itensBoloEspecial, nomeGrupo: "Bolos Especiais", img: "img-bolo-especial", minTotal: 0 },
+            "tabela-doces": { itens: itensDoces, nomeGrupo: "Doces", img: "img-doces", minTotal: 0 },
+            // minTotal = 0 e min individual = 1 para remover restrições
+            "tabela-cookies": { itens: itensCookies, nomeGrupo: "Cookies", img: "img-cookies", minTotal: 0, minIndividual: 1 },
+            "tabela-salfri": { itens: itensSalgadoFrito, nomeGrupo: "Salgados Fritos", img: "img-salfri", minTotal: 0 },
+            "tabela-salgado-forno": { itens: itensSalgadoForno, nomeGrupo: "Salgados Assados", img: "img-salgado-forno", minTotal: 0 },
+            "tabela-salgado-vegetariano": { itens: itensSalgadoVegetariano, nomeGrupo: "Salgados Vegetarianos", img: "img-salgado-vegetariano", minTotal: 0 },
+            "tabela-prato-salgado": { itens: itensPratoSalgado, nomeGrupo: "Pratos Salgados", img: "img-prato-salgado", minTotal: 0 },
+        };
+
+        // -----------------------------------------------------
+        // FUNÇÕES DE CRIAÇÃO E ROLAGEM (ADAPTADAS)
+        // -----------------------------------------------------
+
+        function criarTabelaGrupo(grupo, idTabela, nomeGrupo) {
+            const tabela = document.getElementById(idTabela);
+            if (!tabela) return;
+
+            let tbody = tabela.querySelector('tbody');
+            if (!tbody) {
+                tbody = document.createElement('tbody');
+                tabela.appendChild(tbody);
+            }
+            tbody.innerHTML = '';
+
+            let grupoAtual = null;
+            let countGrupo = 0;
+
+            const isGroupedTable = idTabela.includes('bolo') || idTabela.includes('prato');
+            const isCookieTable = idTabela === 'tabela-cookies';
+            // Flag para saber se a coluna 2 mostra o preço (Doces/Salgados)
+            const isPriceColumn2 = idTabela.includes('doces') || idTabela.includes('salfri') || idTabela.includes('salgado-forno') || idTabela.includes('salgado-vegetariano');
+
+
+            for (let i = 0; i < grupo.length; i++) {
+                const item = grupo[i];
+                const tr = document.createElement("tr");
+
+                // Coluna 2 é o preço (Cookies/Doces/Salgados) ou Tamanho (Bolos/Pratos)
+                const coluna2 = isCookieTable ? item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : (isPriceColumn2 ? item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : (item.tamanho || ''));
+                const precoFormatado = item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const itemId = item.id;
+
+                tr.id = itemId;
+
+                let isFirstInGroup = false;
+
+                const inputHtml = `<input type="number" value="0" min="0" data-min="1" data-preco="${item.preco}" data-resumo="${item.descricaoResumo}" data-grupo="${nomeGrupo}" data-item-id="${itemId}" class="quantidade-input">`;
+
+                if (isGroupedTable) {
+                    if (item.groupKey !== grupoAtual) {
+                        grupoAtual = item.groupKey;
+                        isFirstInGroup = true;
+                        countGrupo = 1;
+                        let j = i + 1;
+                        while (j < grupo.length && grupo[j].groupKey === grupoAtual) {
+                            countGrupo++;
+                            j++;
+                        }
+                    }
+
+                    if (item.groupKey === grupoAtual && i < grupo.length - 1 && grupo[i+1].groupKey === grupoAtual) {
+                        tr.classList.add('item-group-active');
+                    }
+
+                    // CÉLULAS DE TAMANHO/UNID./QUANTIDADE PARA AGRUPADOS (Bolos, Pratos)
+                    const celulasAgrupadas = `
+                        <td>${coluna2}</td>
+                        <td>R$ ${precoFormatado}</td>
+                        <td>
+                            <div class="quantidade-container">
+                                ${inputHtml}
+                            </div>
+                        </td>
+                    `;
+                    if (isFirstInGroup) {
+                        tr.innerHTML = `
+                            <td rowspan="${countGrupo}" class="item-group-cell">
+                                <div class="item-nome">${item.nome}</div>
+                                ${item.descricao ? `<div class="descricao">${item.descricao}</div>` : ''}
+                            </td>
+                            ${celulasAgrupadas}
+                        `;
+                    } else {
+                        tr.innerHTML = celulasAgrupadas;
+                    }
+                } else if (isCookieTable) {
+                    // CÓDIGO PARA COOKIES (3 COLUNAS VISÍVEIS)
+                    tr.innerHTML = `
+                        <td>
+                            <div class="item-nome">${item.nome}</div>
+                            ${item.descricao ? `<div class="descricao">${item.descricao}</div>` : ''}
+                        </td>
+                        <td>R$ ${precoFormatado}</td>
+                        <td>
+                            <div class="quantidade-container">
+                                ${inputHtml}
+                            </div>
+                        </td>
+                    `;
+                } else {
+                    // CÓDIGO PARA DOCES, SALGADOS FRITOS, FORNO, VEGETARIANOS (4 COLUNAS VISÍVEIS - Coluna 2 é o Preço Unid.)
+                    tr.innerHTML = `
+                        <td>
+                            <div class="item-nome">${item.nome}</div>
+                            ${item.descricao ? `<div class="descricao">${item.descricao}</div>` : ''}
+                        </td>
+                        <td>R$ ${coluna2}</td>
+                        <td>UNID.</td>
+                        <td>
+                            <div class="quantidade-container">
+                                ${inputHtml}
+                            </div>
+                        </td>
+                    `;
+                }
+
+                tbody.appendChild(tr);
+            }
+        }
+
+        function ativarAba(linkElement) {
+            const targetGroupId = linkElement.getAttribute('data-target');
+            const targetGroup = document.getElementById(targetGroupId);
+            const categoriasBar = document.getElementById('categorias-horizontal');
+
+            if (!targetGroup) return;
+
+            categoriasBar.querySelectorAll('a').forEach(link => {
+                link.classList.remove('active-link');
+            });
+            document.querySelectorAll('.categoria-group').forEach(group => {
+                group.classList.remove('active-group');
+            });
+
+            linkElement.classList.add('active-link');
+            targetGroup.classList.add('active-group');
+
+            linkElement.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        }
+
+        function scrollToElement(targetElement) {
+            if (!targetElement) return;
+            document.querySelectorAll('.highlight-edit').forEach(el => {
+                el.classList.remove('highlight-edit');
+            });
+
+            const mainHeader = document.querySelector('header');
+            const stickyNav = document.getElementById('sticky-nav-container');
+
+            const fixedHeight = (mainHeader ? mainHeader.offsetHeight : 0) + (stickyNav ? stickyNav.offsetHeight : 0) + 10;
+
+            const elementPosition = targetElement.getBoundingClientRect().top + window.scrollY;
+            const offsetPosition = elementPosition - fixedHeight;
+
+            window.scrollTo({
+                top: Math.max(0, offsetPosition),
+                behavior: 'smooth'
+            });
+        }
+
+
+        // -----------------------------------------------------
+        // FUNÇÕES DE DESCONTO MANUAL (SEGUNDO CÓDIGO)
+        // -----------------------------------------------------
+
+        function formatarEAtualizarDesconto(inputElement) {
+            let valor = inputElement.value;
+            valor = valor.replace(/[^\d,\.]/g, '');
+            let valorNumerico = valor.replace(',', '.');
+
+            const partes = valorNumerico.split('.');
+            if (partes.length > 2) {
+                valorNumerico = partes[0] + '.' + partes.slice(1).join('');
+            }
+
+            inputElement.value = valor.replace('.', ',');
+            descontoAplicado = parseFloat(valorNumerico) || 0;
+            atualizarTotal();
+        }
+
+        function aplicarDescontoManual() {
+            const input = document.getElementById('desconto-input');
+            let valor = input.value;
+            let valorNumerico = valor.replace('.', '').replace(',', '.');
+            descontoAplicado = parseFloat(valorNumerico) || 0;
+
+            input.value = descontoAplicado.toFixed(2).replace('.', ',');
+
+            atualizarTotal();
+
+            const descontoMessage = document.getElementById('desconto-message');
+            if (descontoAplicado > 0) {
+                descontoMessage.textContent = `DESCONTO de R$ ${descontoAplicado.toFixed(2).replace('.', ',')} aplicado!`;
+                descontoMessage.className = 'cupom-message cupom-success';
+            } else if (descontoAplicado === 0) {
+                descontoMessage.textContent = '';
+            } else {
+                 descontoMessage.textContent = 'Valor de desconto inválido. Corrija o valor.';
+                 descontoMessage.className = 'cupom-message cupom-error';
+            }
+        }
+
+
+        // -----------------------------------------------------
+        // FUNÇÕES DE EDIÇÃO E ATUALIZAÇÃO (ADAPTADAS)
+        // -----------------------------------------------------
+
+        function excluirItem(itemId) {
+            const inputNoMain = document.querySelector(`.quantidade-input[data-item-id="${itemId}"]`);
+            if (inputNoMain) {
+                inputNoMain.value = "0";
+                inputNoMain.dispatchEvent(new Event('input'));
+            }
+
+            if (parseFloat(document.getElementById("summary-total").textContent.replace('R$ ', '').replace('.', '').replace(',', '.')) > 0) {
+                abrirResumoPopup();
+            } else {
+                fecharResumoPopup();
+            }
+        }
+
+        function atualizarQuantidadeDireta(inputElement) {
+            const itemId = inputElement.getAttribute('data-item-id');
+            const valorInput = inputElement.value.replace(/[^0-9]/g, '');
+            let novaQuantidade = parseInt(valorInput) || 0;
+
+            const inputNoMain = document.querySelector(`.quantidade-input[data-item-id="${itemId}"]`);
+
+            if (inputNoMain) {
+                if (novaQuantidade < 0) {
+                    novaQuantidade = 0;
+                }
+
+                inputElement.value = novaQuantidade;
+                inputNoMain.value = novaQuantidade;
+                atualizarTotal();
+
+                if (parseFloat(document.getElementById("summary-total").textContent.replace('R$ ', '').replace('.', '').replace(',', '.')) > 0) {
+                    abrirResumoPopup();
+                } else {
+                    fecharResumoPopup();
+                }
+            }
+        }
+
+        function atualizarTotal() {
+            let totalBruto = 0;
+            let totalItens = 0;
+            const resumoItensPopup = document.getElementById("popup-resumo-itens");
+            const resumoTotalPopup = document.getElementById("popup-resumo-total");
+            const fixedSummary = document.getElementById("fixed-summary");
+            const fazerPedidoContainer = document.getElementById("fazer-pedido-button-container");
+
+            if (!resumoItensPopup || !fixedSummary || !fazerPedidoContainer) return;
+            resumoItensPopup.innerHTML = '';
+
+            const gruposResumo = {};
+
+            // Calcula o total Bruto e total de Itens
+            document.querySelectorAll(".quantidade-input").forEach(input => {
+                const quantidade = parseInt(input.value) || 0;
+                const preco = parseFloat(input.getAttribute("data-preco")) || 0;
+                const descricaoResumo = input.getAttribute("data-resumo");
+                const grupo = input.getAttribute("data-grupo");
+                const itemId = input.getAttribute("data-item-id");
+
+                if (quantidade > 0) {
+                    const totalItem = quantidade * preco;
+                    totalBruto += totalItem;
+                    totalItens += quantidade;
+
+                    if (!gruposResumo[grupo]) gruposResumo[grupo] = [];
+                    gruposResumo[grupo].push({ quantidade, preco, descricaoResumo, itemId, grupo });
+                }
+            });
+
+            // Aplica o desconto em R$ (garante que não seja negativo e não ultrapasse o total bruto)
+            const descontoTotal = Math.min(Math.max(0, descontoAplicado), totalBruto);
+            let totalLiquido = totalBruto - descontoTotal;
+
+            const totalBrutoFormatado = totalBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const totalLiquidoFormatado = totalLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            // 1. Atualiza o conteúdo do Pop-up Resumo (Itens)
+            for (const grupo in gruposResumo) {
+                resumoItensPopup.innerHTML += `<strong>${grupo}:</strong><br>`;
+                gruposResumo[grupo].forEach(item => {
+                    const precoTotalItem = item.quantidade * item.preco;
+                    let precoExibicao = `R$ ${precoTotalItem.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                    resumoItensPopup.innerHTML += `
+                        <div class="resumo-item-line">
+                            <div class="resumo-item-name">
+                                ${item.descricaoResumo}
+                                <small>${precoExibicao}</small>
+                            </div>
+                            <div class="resumo-item-input-group">
+                                <input type="number"
+                                        min="0"
+                                        value="${item.quantidade}"
+                                        data-item-id="${item.itemId}"
+                                        onblur="atualizarQuantidadeDireta(this)">
+                                un.
+                            </div>
+                            <div class="resumo-item-actions">
+                                <button class="btn-excluir" onclick="excluirItem('${item.itemId}')">EXCLUIR</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // 2. Atualiza o total exibido no Pop-up (incluindo desconto se houver)
+            if (descontoTotal > 0) {
+                 resumoTotalPopup.innerHTML = `
+                    <div class="resumo-total-line">SUBTOTAL: R$ ${totalBrutoFormatado}</div>
+                    <div class="resumo-total-line total-com-desconto">DESCONTO: R$ ${descontoTotal.toFixed(2).replace('.', ',')}</div>
+                    <div class="resumo-total">TOTAL FINAL: R$ ${totalLiquidoFormatado}</div>
+                    `;
+            } else {
+                 resumoTotalPopup.textContent = `TOTAL: R$ ${totalBrutoFormatado}`;
+            }
+
+            // 3. Controla a visibilidade do botão "Concluir Pedido" no pop-up
+            if (totalBruto > 0) {
+                 fazerPedidoContainer.innerHTML = '<button onclick="abrirPopup()">CONCLUIR ORÇAMENTO</button>';
+            } else {
+                 fazerPedidoContainer.innerHTML = '';
+                 descontoAplicado = 0;
+                 document.getElementById('desconto-input').value = "0,00";
+                 document.getElementById('desconto-message').textContent = '';
+            }
+
+            // 4. Atualiza e exibe o Rodapé Fixo
+            if (totalBruto > 0) {
+                document.getElementById("summary-total").textContent = `R$ ${totalLiquidoFormatado}`;
+                document.getElementById("summary-item-count").textContent = ` / ${totalItens} ${totalItens === 1 ? 'item' : 'itens'}`;
+                fixedSummary.style.display = 'block';
+            } else {
+                document.getElementById("summary-total").textContent = `R$ 0,00`;
+                document.getElementById("summary-item-count").textContent = ` / 0 itens`;
+                fixedSummary.style.display = 'none';
+                fecharResumoPopup();
+            }
+        }
+
+        // -----------------------------------------------------
+        // FUNÇÕES POPUP E CONFIRMAR ORÇAMENTO
+        // -----------------------------------------------------
+        function abrirResumoPopup() {
+            const descontoInput = document.getElementById('desconto-input');
+            if (descontoInput) {
+                descontoInput.value = descontoAplicado.toFixed(2).replace('.', ',');
+                aplicarDescontoManual();
+            }
+
+            const totalText = document.getElementById("summary-total").textContent;
+            const total = parseFloat(totalText.replace('R$ ', '').replace('.', '').replace(',', '.')) || 0;
+
+            if (total > 0) {
+                 document.getElementById("popup-resumo").style.display = "flex";
+            } else {
+                 alert("Seu orçamento está vazio. Adicione itens para visualizar o resumo!");
+            }
+        }
+
+        function fecharResumoPopup() {
+            document.getElementById("popup-resumo").style.display = "none";
+        }
+
+        function abrirPopup() {
+            fecharResumoPopup();
+            document.getElementById("popup-pedido").style.display = "flex";
+
+            const today = new Date();
+            const dateStr = today.toISOString().substring(0, 10);
+            const timeStr = today.toTimeString().substring(0, 5);
+
+            document.getElementById("data").value = document.getElementById("data").value || dateStr;
+            document.getElementById("horario").value = document.getElementById("horario").value || timeStr;
+        }
+
+        function fecharPopup() {
+            document.getElementById("popup-pedido").style.display = "none";
+        }
+
+        function editarPedido() {
+            fecharPopup();
+            abrirResumoPopup();
+        }
+
+        function resetarCampos() {
+            document.querySelectorAll(".quantidade-input").forEach(input => {
+                input.value = "0";
+            });
+
+            descontoAplicado = 0;
+            const descontoInput = document.getElementById('desconto-input');
+            if(descontoInput) descontoInput.value = "0,00";
+            const descontoMessage = document.getElementById('desconto-message');
+            if(descontoMessage) descontoMessage.textContent = '';
+
+            document.getElementById("nome").value = "";
+            document.getElementById("data").value = "";
+            document.getElementById("horario").value = "";
+            document.getElementById("pagamento").value = "";
+
+            fecharPopup();
+            fecharResumoPopup();
+            atualizarTotal();
+            window.scrollTo(0, 0);
+        }
+
+        function confirmarPedido() {
+            const linhaSeparadora = "\n\n*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*\n\n";
+
+            let resumoWhatsapp = "Segue o orçamento do seu pedido:\n\n\n*_- Resumo dos Itens:_*\n\n";
+            let totalBruto = 0;
+
+            const gruposResumo = {};
+            let totalItens = 0;
+
+            document.querySelectorAll(".quantidade-input").forEach(input => {
+                const quantidade = parseInt(input.value) || 0;
+                const preco = parseFloat(input.getAttribute("data-preco")) || 0;
+                const descricaoResumo = input.getAttribute("data-resumo");
+                const grupo = input.getAttribute("data-grupo");
+
+                if (quantidade > 0) {
+                    const totalItem = quantidade * preco;
+                    totalBruto += totalItem;
+                    totalItens += quantidade;
+
+                    if (!gruposResumo[grupo]) {
+                        gruposResumo[grupo] = [];
+                    }
+                    gruposResumo[grupo].push({ descricao: descricaoResumo, quantidade: quantidade, precoUnid: preco, precoTotal: totalItem });
+                }
+            });
+
+            if (totalBruto === 0) {
+                alert("Seu orçamento está vazio. Adicione itens para enviar.");
+                fecharPopup();
+                return;
+            }
+
+            const descontoTotal = Math.min(Math.max(0, descontoAplicado), totalBruto);
+            const totalLiquido = totalBruto - descontoTotal;
+            const totalLiquidoFormatado = totalLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+
+            // Monta o resumo em texto para o WhatsApp
+            for (const grupo in gruposResumo) {
+                resumoWhatsapp += `*${grupo}:*\n`;
+                gruposResumo[grupo].forEach(item => {
+                    const precoUnidFormatado = item.precoUnid.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const precoTotalFormatado = item.precoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    resumoWhatsapp += `${item.descricao} - ${item.quantidade} un. (R$ ${precoUnidFormatado} cada) = R$ ${precoTotalFormatado}\n`;
+                });
+                resumoWhatsapp += `\n`;
+            }
+
+            resumoWhatsapp += `*- Total dos Itens (Bruto)*: R$ ${totalBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+
+            if (descontoTotal > 0) {
+                 resumoWhatsapp += `*- Desconto Aplicado*: R$ ${descontoTotal.toFixed(2).replace('.', ',')}\n`;
+            }
+
+            resumoWhatsapp += `*_Total Final do Orçamento (sem taxa de entrega)_*: *R$ ${totalLiquidoFormatado}*\n`;
+            resumoWhatsapp += `(Total de ${totalItens} ${totalItens === 1 ? 'item' : 'itens'})\n`;
+
+
+            const nome = document.getElementById("nome").value;
+            const data = document.getElementById("data").value;
+            const horario = document.getElementById("horario").value;
+            const pagamento = document.getElementById("pagamento").value;
+
+            // Validação dos campos do cliente (obrigatórios)
+            if (!nome || !data || !horario || !pagamento || pagamento === "") {
+                alert("Por gentileza, preencha todos os campos do pedido (Nome, Data, Horário e Forma de Pagamento).");
+                return;
+            }
+
+            const dataParts = data.split("-");
+            const dataFormatada = `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}`;
+
+            // Inclui a linha separadora e as informações do cliente
+            resumoWhatsapp += linhaSeparadora;
+
+            resumoWhatsapp += `_*- Informações para a Entrega/Retirada:*_\n\n*Nome do Cliente*: ${nome}\n*Data da Entrega/Retirada*: ${dataFormatada}\n*Horário Estimado*: ${horario}\n*Forma de Pagamento Combinada*: ${pagamento}`;
+
+            const whatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(resumoWhatsapp)}`;
+            window.open(whatsappLink, '_blank');
+
+            // Após enviar, reseta a calculadora.
+            resetarCampos();
+        }
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            for (const idTabela in gruposItens) {
+                const tabelaId = idTabela;
+                criarTabelaGrupo(gruposItens[idTabela].itens, tabelaId, gruposItens[idTabela].nomeGrupo);
+            }
+
+            document.querySelectorAll(".quantidade-input").forEach(input => {
+                input.addEventListener("input", atualizarTotal);
+
+                input.addEventListener("blur", function() {
+                    const quantidade = parseInt(this.value) || 0;
+                    if (this.value === "" || quantidade < 0) {
+                        this.value = "0";
+                    } else {
+                        this.value = quantidade.toString();
+                    }
+                    atualizarTotal();
+                });
+            });
+
+            const categoriasBar = document.getElementById('categorias-horizontal');
+            const links = categoriasBar.querySelectorAll('a');
+
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    ativarAba(this);
+
+                    const targetImageId = this.getAttribute('data-img');
+                    const targetElement = document.getElementById(targetImageId);
+
+                    if (targetElement) {
+                        scrollToElement(targetElement);
+                    }
+                });
+            });
+
+            const primeiroLink = document.querySelector('#categorias-horizontal a[data-target="grupo-bolo-tradicional"]');
+            const primeiroGrupo = document.getElementById('grupo-bolo-tradicional');
+
+            if (primeiroLink) {
+                primeiroLink.classList.add('active-link');
+            }
+            if (primeiroGrupo) {
+                primeiroGrupo.classList.add('active-group');
+            }
+
+            document.addEventListener('click', function(event) {
+                const popupResumo = document.getElementById('popup-resumo');
+                const popupPedido = document.getElementById('popup-pedido');
+
+                if (popupResumo && popupResumo.style.display === 'flex' && event.target === popupResumo) {
+                    fecharResumoPopup();
+                }
+
+                if (popupPedido && popupPedido.style.display === 'flex' && event.target === popupPedido) {
+                    fecharPopup();
+                }
+            });
+
+            // Inicia o cálculo total
+            atualizarTotal();
+        });
+    </script>
+
 </body>
 </html>
